@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The "Mais ou Menos" Masterclass</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Poppins', 'sans-serif'] },
+                    animation: { 
+                        fadeIn: 'fadeIn 0.5s ease-out forwards',
+                        pop: 'pop 0.3s ease-out forwards'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pop: { '0%': { transform: 'scale(0.9)' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)' } }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-black text-white min-h-screen selection:bg-cyan-500 selection:text-black">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATA: THE EXPLANATIONS ---
+        const EXPLANATIONS = [
+            {
+                title: "The 'So-So' Trap",
+                content: "Brazilians love to say 'So-so'. Stop it! Native speakers rarely use it unless they are children. If someone asks 'How are you?', don't say 'So-so'. Say 'I'm okay', 'Not bad', or 'I'm kind of tired'.",
+                color: "text-red-400"
+            },
+            {
+                title: "QUITE = 'Até que...'",
+                content: "Use 'Quite' when you are positively surprised. It means 'Relativamente' or 'Bastante'. Example: 'The movie was quite good' (O filme foi até que bom/relativamente bom).",
+                color: "text-cyan-400"
+            },
+            {
+                title: "KIND OF / SORT OF = 'Meio...'",
+                content: "Use these to soften your sentence. It means 'Meio que' or 'Um pouco'. Example: 'I am kind of hungry' (Tô meio com fome). 'Sort of' is the same thing.",
+                color: "text-lime-400"
+            },
+            {
+                title: "ABOUT = 'Aproximadamente'",
+                content: "Use for numbers, time, or quantities. Don't use 'More or less' for time! Say: 'It's about 5 PM' (São mais ou menos 5 da tarde).",
+                color: "text-fuchsia-400"
+            },
+            {
+                title: "SOMEWHAT = 'Algo/Um tanto'",
+                content: "This is the formal version of 'Kind of'. Use it in professional emails. 'The results were somewhat disappointing.'",
+                color: "text-yellow-400"
+            }
+        ];
+
+        // --- DATA: EXERCISES ---
+        const DRAG_EXERCISES = [
+            { id: 1, words: ["IT", "WAS", "QUITE", "GOOD"], target: "IT WAS QUITE GOOD", hint: "Foi até que bom (surpresa positiva)." },
+            { id: 2, words: ["I", "AM", "KIND", "OF", "TIRED"], target: "I AM KIND OF TIRED", hint: "Estou meio cansado." },
+            { id: 3, words: ["SHE", "IS", "SORT", "OF", "SHY"], target: "SHE IS SORT OF SHY", hint: "Ela é meio tímida." },
+            { id: 4, words: ["IT", "IS", "ABOUT", "TEN", "O'CLOCK"], target: "IT IS ABOUT TEN O'CLOCK", hint: "São mais ou menos 10 horas." },
+            { id: 5, words: ["THE", "PROJECT", "IS", "SOMEWHAT", "COMPLEX"], target: "THE PROJECT IS SOMEWHAT COMPLEX", hint: "O projeto é um tanto complexo (Formal)." },
+            { id: 6, words: ["HE", "WAS", "QUITE", "RUDE"], target: "HE WAS QUITE RUDE", hint: "Ele foi bem grosseiro/até que grosseiro." },
+            { id: 7, words: ["I", "KIND", "OF", "LIKED", "IT"], target: "I KIND OF LIKED IT", hint: "Eu meio que gostei." },
+            { id: 8, words: ["IT", "IS", "ABOUT", "FIVE", "MILES"], target: "IT IS ABOUT FIVE MILES", hint: "São aproximadamente 5 milhas." },
+            { id: 9, words: ["WE", "ARE", "SORT", "OF", "LOST"], target: "WE ARE SORT OF LOST", hint: "Estamos meio perdidos." },
+            { id: 10, words: ["THE", "FOOD", "WAS", "QUITE", "TASTY"], target: "THE FOOD WAS QUITE TASTY", hint: "A comida estava até que gostosa." }
+        ];
+
+        const TRANSLATION_EXERCISES = [
+            { id: 1, pt: "Eu estou meio ocupado agora.", en: ["I", "AM", "KIND", "OF", "BUSY", "NOW"] },
+            { id: 2, pt: "O filme foi até que interessante.", en: ["THE", "MOVIE", "WAS", "QUITE", "INTERESTING"] },
+            { id: 3, pt: "É mais ou menos (aproximadamente) meio-dia.", en: ["IT", "IS", "ABOUT", "NOON"] },
+            { id: 4, pt: "Ela ficou meio chateada.", en: ["SHE", "WAS", "SORT", "OF", "UPSET"] },
+            { id: 5, pt: "O custo foi um tanto alto (formal).", en: ["THE", "COST", "WAS", "SOMEWHAT", "HIGH"] },
+            { id: 6, pt: "Eu meio que sabia a resposta.", en: ["I", "KIND", "OF", "KNEW", "THE", "ANSWER"] },
+            { id: 7, pt: "Não foi ruim (substituto para so-so).", en: ["IT", "WAS", "NOT", "BAD"] },
+            { id: 8, pt: "É até que fácil.", en: ["IT", "IS", "QUITE", "EASY"] },
+            { id: 9, pt: "Estamos meio atrasados.", en: ["WE", "ARE", "KIND", "OF", "LATE"] },
+            { id: 10, pt: "São cerca de 50 pessoas.", en: ["THERE", "ARE", "ABOUT", "50", "PEOPLE"] }
+        ];
+
+        const SITUATION_EXERCISES = [
+            { id: 1, context: "Situation: You ate at a new restaurant. It wasn't amazing, but better than you expected.", sentence: "The food was _____ good actually.", options: ["QUITE", "ABOUT", "MORE OR LESS"], correct: "QUITE" },
+            { id: 2, context: "Situation: You are feeling a little bit sick, but not terrible.", sentence: "I am feeling _____ sick today.", options: ["ABOUT", "KIND OF", "QUITE"], correct: "KIND OF" },
+            { id: 3, context: "Situation: Someone asks the time. You don't have a watch, but you guess.", sentence: "It is _____ 3 PM.", options: ["QUITE", "ABOUT", "KIND OF"], correct: "ABOUT" },
+            { id: 4, context: "Situation: Your boss asks about the report. It's not 100% done, but almost.", sentence: "It is _____ finished.", options: ["SORT OF", "QUITE", "ABOUT"], correct: "SORT OF" },
+            { id: 5, context: "Situation: Writing a formal email about a small problem.", sentence: "This issue is _____ concerning.", options: ["KIND OF", "SOMEWHAT", "ABOUT"], correct: "SOMEWHAT" },
+            { id: 6, context: "Situation: You watched a movie. It was weird, but you didn't hate it.", sentence: "It was _____ weird, but funny.", options: ["ABOUT", "KIND OF", "QUITE"], correct: "KIND OF" },
+            { id: 7, context: "Situation: You are surprised that the test was easy.", sentence: "The test was _____ easy!", options: ["QUITE", "ABOUT", "SORT OF"], correct: "QUITE" },
+            { id: 8, context: "Situation: Estimating the cost of a project.", sentence: "It will cost _____ 1000 dollars.", options: ["QUITE", "KIND OF", "ABOUT"], correct: "ABOUT" },
+            { id: 9, context: "Situation: You are a little bit thirsty.", sentence: "I am _____ thirsty.", options: ["SORT OF", "ABOUT", "QUITE"], correct: "SORT OF" },
+            { id: 10, context: "Situation: Someone asks 'How are you?'. You are fine.", sentence: "I'm _____.", options: ["SO-SO", "MORE OR LESS", "OKAY"], correct: "OKAY" }
+        ];
+
+        // --- COMPONENTS ---
+
+        const TabButton = ({ active, onClick, label }) => (
+            <button 
+                onClick={onClick}
+                className={`px-6 py-3 rounded-t-xl font-bold text-sm sm:text-base transition-all ${active ? 'bg-gray-800 text-cyan-400 border-t-2 border-cyan-400' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
+            >
+                {label}
+            </button>
+        );
+
+        const ExplanationCard = ({ data }) => (
+            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-gray-500 transition-all">
+                <h3 className={`text-xl font-bold mb-2 ${data.color}`}>{data.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{data.content}</p>
+            </div>
+        );
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('learn'); // learn, drag, translate, situations
+
+            // State for Drag
+            const [dragIndex, setDragIndex] = useState(0);
+            const [dragOrder, setDragOrder] = useState([]);
+            const [dragShuffled, setDragShuffled] = useState([]);
+            const [dragFeedback, setDragFeedback] = useState(null);
+
+            // State for Translate
+            const [transIndex, setTransIndex] = useState(0);
+            const [transBuilt, setTransBuilt] = useState([]);
+            const [transPool, setTransPool] = useState([]);
+            const [transFeedback, setTransFeedback] = useState(null);
+
+            // State for Situations
+            const [sitIndex, setSitIndex] = useState(0);
+            const [sitFeedback, setSitFeedback] = useState(null);
+
+            // --- DRAG LOGIC ---
+            useEffect(() => {
+                if (activeTab === 'drag') {
+                    const words = [...DRAG_EXERCISES[dragIndex].words];
+                    // Simple shuffle
+                    setDragShuffled(words.sort(() => Math.random() - 0.5));
+                    setDragOrder(new Array(words.length).fill(null));
+                    setDragFeedback(null);
+                }
+            }, [dragIndex, activeTab]);
+
+            const handleDragStart = (e, word, sourceIndex) => {
+                e.dataTransfer.setData("text/plain", JSON.stringify({ word, sourceIndex }));
+            };
+
+            const handleDrop = (e, targetIndex) => {
+                e.preventDefault();
+                const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+                const newOrder = [...dragOrder];
+                const newShuffled = [...dragShuffled];
+
+                // If moving from pool to target
+                if (data.sourceIndex === -1) { 
+                    // Find word in shuffled pool
+                    const poolIndex = newShuffled.indexOf(data.word);
+                    if (poolIndex > -1) {
+                        newShuffled[poolIndex] = null; // Remove from pool
+
+                        // If target spot occupied, return occupant to pool
+                        if (newOrder[targetIndex]) {
+                            // Find empty spot in pool
+                            const emptyPoolIndex = newShuffled.indexOf(null);
+                            newShuffled[emptyPoolIndex] = newOrder[targetIndex];
+                        }
+                        newOrder[targetIndex] = data.word;
+                    }
+                } 
+                // If moving within target
+                else {
+                    const temp = newOrder[targetIndex];
+                    newOrder[targetIndex] = newOrder[data.sourceIndex];
+                    newOrder[data.sourceIndex] = temp;
+                }
+
+                setDragOrder(newOrder);
+                setDragShuffled(newShuffled);
+
+                // Check win
+                const currentSentence = newOrder.join(" ");
+                if (currentSentence === DRAG_EXERCISES[dragIndex].target) {
+                    setDragFeedback("CORRECT!");
+                    setTimeout(() => {
+                        if (dragIndex < DRAG_EXERCISES.length - 1) setDragIndex(prev => prev + 1);
+                        else alert("Drag Section Complete!");
+                    }, 1000);
+                }
+            };
+
+            // --- TRANSLATE LOGIC ---
+            useEffect(() => {
+                if (activeTab === 'translate') {
+                    const words = [...TRANSLATION_EXERCISES[transIndex].en];
+                    setTransPool(words.sort(() => Math.random() - 0.5));
+                    setTransBuilt([]);
+                    setTransFeedback(null);
+                }
+            }, [transIndex, activeTab]);
+
+            const handleWordClick = (word, fromPool) => {
+                if (fromPool) {
+                    setTransBuilt([...transBuilt, word]);
+                    setTransPool(transPool.filter(w => w !== word)); // Remove only one instance if duplicates exist logic needs care, but for simple sentences unique words mostly ok. For strictness, use index.
+                    // Better logic for duplicates:
+                    const idx = transPool.indexOf(word);
+                    const newPool = [...transPool];
+                    newPool.splice(idx, 1);
+                    setTransPool(newPool);
+                } else {
+                    // Return to pool
+                    setTransPool([...transPool, word]);
+                    const idx = transBuilt.indexOf(word);
+                    const newBuilt = [...transBuilt];
+                    newBuilt.splice(idx, 1);
+                    setTransBuilt(newBuilt);
+                }
+            };
+
+            useEffect(() => {
+                if (activeTab === 'translate' && transBuilt.length > 0 && transPool.length === 0) {
+                    const target = TRANSLATION_EXERCISES[transIndex].en.join(" ");
+                    const attempt = transBuilt.join(" ");
+                    if (target === attempt) {
+                        setTransFeedback("PERFECT!");
+                        setTimeout(() => {
+                            if (transIndex < TRANSLATION_EXERCISES.length - 1) setTransIndex(prev => prev + 1);
+                            else alert("Translation Section Complete!");
+                        }, 1000);
+                    } else {
+                        setTransFeedback("Try Again");
+                    }
+                }
+            }, [transBuilt, transPool]);
+
+
+            // --- SITUATION LOGIC ---
+            const handleSituationChoice = (option) => {
+                if (option === SITUATION_EXERCISES[sitIndex].correct) {
+                    setSitFeedback("CORRECT!");
+                    setTimeout(() => {
+                        setSitFeedback(null);
+                        if (sitIndex < SITUATION_EXERCISES.length - 1) setSitIndex(prev => prev + 1);
+                        else alert("Situations Complete!");
+                    }, 1000);
+                } else {
+                    setSitFeedback("WRONG - Think about the context!");
+                }
+            };
+
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-20">
+
+                    {/* HEADER */}
+                    <header className="pt-10 pb-6 text-center px-4">
+                        <h1 className="text-4xl md:text-6xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 mb-2">
+                            MAIS OU MENOS
+                        </h1>
+                        <p className="text-gray-400 text-lg">The Masterclass: Stop saying "So-so"</p>
+                    </header>
+
+                    {/* NAVIGATION */}
+                    <div className="max-w-4xl mx-auto px-4 mb-8 flex flex-wrap justify-center gap-1 border-b border-gray-800">
+                        <TabButton label="1. THE LOGIC" active={activeTab === 'learn'} onClick={() => setActiveTab('learn')} />
+                        <TabButton label="2. REORDER" active={activeTab === 'drag'} onClick={() => setActiveTab('drag')} />
+                        <TabButton label="3. TRANSLATE" active={activeTab === 'translate'} onClick={() => setActiveTab('translate')} />
+                        <TabButton label="4. REAL LIFE" active={activeTab === 'situations'} onClick={() => setActiveTab('situations')} />
+                    </div>
+
+                    {/* CONTENT AREA */}
+                    <main className="max-w-4xl mx-auto px-4">
+
+                        {/* --- SECTION 1: LEARN --- */}
+                        {activeTab === 'learn' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                                <div className="md:col-span-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700 text-center">
+                                    <h2 className="text-2xl font-bold text-white mb-2">The Brazilian Problem</h2>
+                                    <p className="text-gray-300">
+                                        Translating "Mais ou menos" directly to "More or less" usually sounds mathematical. 
+                                        Using "So-so" sounds childish. Here is how to fix it.
+                                    </p>
+                                </div>
+                                {EXPLANATIONS.map((exp, i) => (
+                                    <ExplanationCard key={i} data={exp} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* --- SECTION 2: DRAG --- */}
+                        {activeTab === 'drag' && (
+                            <div className="animate-fadeIn max-w-2xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <span className="text-cyan-500 font-bold tracking-widest text-xs uppercase">Exercise {dragIndex + 1}/10</span>
+                                    <h2 className="text-2xl font-bold mt-2">Reorder the Sentence</h2>
+                                    <p className="text-gray-400 mt-2 italic">"{DRAG_EXERCISES[dragIndex].hint}"</p>
+                                </div>
+
+                                {/* Drop Zone */}
+                                <div className="bg-gray-800 p-4 rounded-xl min-h-[80px] flex flex-wrap gap-2 justify-center border-2 border-dashed border-gray-600 mb-8">
+                                    {dragOrder.map((word, idx) => (
+                                        <div 
+                                            key={idx}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => handleDrop(e, idx)}
+                                            className={`w-auto min-w-[60px] h-12 rounded-lg flex items-center justify-center font-bold transition-all ${word ? 'bg-cyan-600 text-white cursor-grab shadow-lg' : 'bg-gray-700/30'}`}
+                                            draggable={!!word}
+                                            onDragStart={(e) => handleDragStart(e, word, idx)}
+                                        >
+                                            {word}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Word Pool */}
+                                <div className="flex flex-wrap gap-3 justify-center">
+                                    {dragShuffled.map((word, idx) => (
+                                        word && (
+                                            <div 
+                                                key={idx}
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, word, -1)}
+                                                className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold cursor-grab active:cursor-grabbing border border-gray-600"
+                                            >
+                                                {word}
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+
+                                {dragFeedback && (
+                                    <div className="mt-8 text-center text-2xl font-bold text-lime-400 animate-pop">
+                                        {dragFeedback}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* --- SECTION 3: TRANSLATE --- */}
+                        {activeTab === 'translate' && (
+                            <div className="animate-fadeIn max-w-2xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <span className="text-fuchsia-500 font-bold tracking-widest text-xs uppercase">Exercise {transIndex + 1}/10</span>
+                                    <h2 className="text-2xl font-bold mt-2">Translate to English</h2>
+                                    <div className="bg-gray-800 inline-block px-6 py-3 rounded-full mt-4 border border-gray-700">
+                                        <p className="text-xl text-white">"{TRANSLATION_EXERCISES[transIndex].pt}"</p>
+                                    </div>
+                                </div>
+
+                                {/* Built Sentence Area */}
+                                <div className="min-h-[60px] border-b-2 border-gray-700 mb-8 flex flex-wrap gap-2 justify-center pb-4">
+                                    {transBuilt.length === 0 && <span className="text-gray-600 italic">Click words below to build...</span>}
+                                    {transBuilt.map((word, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => handleWordClick(word, false)}
+                                            className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1 rounded shadow-lg font-bold animate-pop"
+                                        >
+                                            {word}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Word Bank */}
+                                <div className="flex flex-wrap gap-3 justify-center">
+                                    {transPool.map((word, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => handleWordClick(word, true)}
+                                            className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold border border-gray-600"
+                                        >
+                                            {word}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {transFeedback && (
+                                    <div className={`mt-8 text-center text-2xl font-bold animate-pop ${transFeedback === 'PERFECT!' ? 'text-lime-400' : 'text-red-400'}`}>
+                                        {transFeedback}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* --- SECTION 4: SITUATIONS --- */}
+                        {activeTab === 'situations' && (
+                            <div className="animate-fadeIn max-w-2xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <span className="text-lime-500 font-bold tracking-widest text-xs uppercase">Scenario {sitIndex + 1}/10</span>
+                                    <h2 className="text-2xl font-bold mt-2">Real Life Context</h2>
+                                </div>
+
+                                <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
+                                    <div className="mb-6 p-4 bg-gray-900/50 rounded-lg border-l-4 border-lime-500">
+                                        <p className="text-gray-300 italic">{SITUATION_EXERCISES[sitIndex].context}</p>
+                                    </div>
+
+                                    <p className="text-2xl font-bold text-center mb-8 leading-relaxed">
+                                        {SITUATION_EXERCISES[sitIndex].sentence.split("_____")[0]}
+                                        <span className="inline-block w-32 border-b-2 border-lime-500 mx-2 text-lime-400 text-center">?</span>
+                                        {SITUATION_EXERCISES[sitIndex].sentence.split("_____")[1]}
+                                    </p>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        {SITUATION_EXERCISES[sitIndex].options.map((opt, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleSituationChoice(opt)}
+                                                className="bg-gray-700 hover:bg-lime-600 hover:text-black text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105"
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {sitFeedback && (
+                                    <div className={`mt-8 text-center text-xl font-bold animate-pop ${sitFeedback.includes('CORRECT') ? 'text-lime-400' : 'text-red-400'}`}>
+                                        {sitFeedback}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
