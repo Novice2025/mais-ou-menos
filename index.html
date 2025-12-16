@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The "Mais ou Menos" Masterclass v2</title>
+    <title>The "Mais ou Menos" Masterclass - Expanded</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,42 +44,196 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- DATA: THE FIX (SCENARIOS) ---
+        // --- DATA: THE FIX (20 SCENARIOS) ---
         const SCENARIOS = [
+            // --- GROUP 1: QUALITY & FEELINGS ---
             {
                 id: 1,
-                context: "Asking about quality (Food, Movie, Party)",
+                category: "Quality",
+                context: "The movie was better than you expected.",
                 mistake: "The movie was more or less.",
                 correction: "The movie was quite good.",
-                explanation: "Never use 'more or less' for quality. If you were positively surprised, use 'Quite' (Até que...). If it was average, use 'It was okay'."
+                explanation: "If you are positively surprised, use 'Quite'. 'More or less' sounds like you are calculating a math equation.",
+                association: "🧠 SURPRISE = QUITE (Até que...)"
             },
             {
                 id: 2,
-                context: "Talking about Feelings (Tired, Hungry, Sad)",
+                category: "Feelings",
+                context: "You are a little bit tired.",
                 mistake: "I am more or less tired.",
                 correction: "I am kind of tired.",
-                explanation: "For feelings, 'more or less' sounds mathematical. Use 'Kind of' or 'Sort of' to mean 'Meio que' or 'Um pouco'."
+                explanation: "Use 'Kind of' or 'Sort of' to soften a feeling. It means 'Meio que'.",
+                association: "🧠 SOFTEN = KIND OF (Meio...)"
             },
             {
                 id: 3,
-                context: "Talking about Time or Numbers",
-                mistake: "I will arrive more or less at 9 PM.",
-                correction: "I will arrive about 9 PM.",
-                explanation: "For numbers and time, 'About' or 'Around' is the correct term for 'aproximadamente'. 'More or less' is too literal."
+                category: "Feelings",
+                context: "Someone asks 'How are you?'",
+                mistake: "I am so-so.",
+                correction: "I'm okay / Not bad.",
+                explanation: "'So-so' is very childish. Adults say 'Not bad' or 'I've been better'.",
+                association: "🧠 ADULT = NOT BAD (Nada mal)"
             },
             {
                 id: 4,
-                context: "Professional Status (Formal)",
-                mistake: "The results are so-so.",
-                correction: "The results are somewhat disappointing.",
-                explanation: "'So-so' is childish. In a meeting, use 'Somewhat' to soften a negative adjective. It sounds professional and polite."
+                category: "Quality",
+                context: "The food was average.",
+                mistake: "The food was so-so.",
+                correction: "The food was alright / okay.",
+                explanation: "'Alright' is the perfect neutral word for food or experiences.",
+                association: "🧠 NEUTRAL = ALRIGHT (Tudo bem)"
             },
+
+            // --- GROUP 2: NUMBERS & TIME ---
             {
                 id: 5,
-                context: "Answering 'How are you?'",
-                mistake: "I am so-so.",
-                correction: "I'm okay / Not bad.",
-                explanation: "Native speakers almost never say 'so-so' for feelings. 'Not bad' is the most natural way to say 'mais ou menos' (neutral)."
+                category: "Numbers",
+                context: "Estimating arrival time (9:00 PM).",
+                mistake: "I arrive more or less 9 PM.",
+                correction: "I'll arrive around 9 PM.",
+                explanation: "For time, always use 'Around' or 'About'. Never 'more or less'.",
+                association: "🧠 CLOCK = AROUND (Por volta de)"
+            },
+            {
+                id: 6,
+                category: "Numbers",
+                context: "Estimating a price ($50).",
+                mistake: "It costs more or less $50.",
+                correction: "It costs about $50.",
+                explanation: "For money and quantities, 'About' is the standard approximation.",
+                association: "🧠 MONEY = ABOUT (Cerca de)"
+            },
+            {
+                id: 7,
+                category: "Numbers",
+                context: "Estimating a crowd size (100 people).",
+                mistake: "There were more or less 100 people.",
+                correction: "There were roughly 100 people.",
+                explanation: "'Roughly' is a great professional word for estimation.",
+                association: "🧠 ESTIMATE = ROUGHLY (Grosseiramente)"
+            },
+            {
+                id: 8,
+                category: "Numbers",
+                context: "Estimating Age (40 years old).",
+                mistake: "He is more or less 40.",
+                correction: "He is around 40.",
+                explanation: "We don't use 'more or less' for age. Use 'Around'.",
+                association: "🧠 AGE = AROUND (Por volta de)"
+            },
+
+            // --- GROUP 3: COMPLETION & CERTAINTY ---
+            {
+                id: 9,
+                category: "Completion",
+                context: "Is the project finished?",
+                mistake: "It is more or less finished.",
+                correction: "It is almost finished.",
+                explanation: "If you are near the end, use 'Almost' or 'Nearly'.",
+                association: "🧠 NEAR THE END = ALMOST (Quase)"
+            },
+            {
+                id: 10,
+                category: "Certainty",
+                context: "Are you sure about the decision?",
+                mistake: "I am more or less sure.",
+                correction: "I am pretty sure.",
+                explanation: "'Pretty sure' means you are confident, but not 100%.",
+                association: "🧠 CONFIDENCE = PRETTY SURE (Tenho quase certeza)"
+            },
+            {
+                id: 11,
+                category: "Understanding",
+                context: "Did you understand the meeting?",
+                mistake: "I understood more or less.",
+                correction: "I understood most of it.",
+                explanation: "Saying 'more or less' sounds like you understood nothing. 'Most of it' sounds positive.",
+                association: "🧠 POSITIVE = MOST OF IT (A maior parte)"
+            },
+            {
+                id: 12,
+                category: "Agreement",
+                context: "Do you agree with him?",
+                mistake: "I agree more or less.",
+                correction: "I somewhat agree.",
+                explanation: "'Somewhat' is professional and polite for partial agreement.",
+                association: "🧠 PARTIAL = SOMEWHAT (Em parte)"
+            },
+
+            // --- GROUP 4: INTENSITY & DISTANCE ---
+            {
+                id: 13,
+                category: "Distance",
+                context: "Is the office far?",
+                mistake: "It is more or less far.",
+                correction: "It is quite far.",
+                explanation: "Use 'Quite' to emphasize distance. 'A bit far' works too.",
+                association: "🧠 DISTANCE = QUITE (Bem longe)"
+            },
+            {
+                id: 14,
+                category: "Intensity",
+                context: "It is raining lightly.",
+                mistake: "It is raining more or less.",
+                correction: "It is drizzling / kind of raining.",
+                explanation: "Use specific verbs like 'drizzling' or soften with 'kind of'.",
+                association: "🧠 WEATHER = KIND OF (Meio que)"
+            },
+            {
+                id: 15,
+                category: "Intensity",
+                context: "The test was difficult.",
+                mistake: "The test was so-so difficult.",
+                correction: "The test was rather difficult.",
+                explanation: "'So-so' cannot be used as an adverb before an adjective. Use 'Rather' or 'Pretty'.",
+                association: "🧠 ADVERB = RATHER (Bastante)"
+            },
+
+            // --- GROUP 5: PROFESSIONAL & FORMAL ---
+            {
+                id: 16,
+                category: "Professional",
+                context: "The results were bad (Polite).",
+                mistake: "The results were so-so.",
+                correction: "The results were somewhat disappointing.",
+                explanation: "In business, we soften bad news with 'Somewhat'.",
+                association: "🧠 BAD NEWS = SOMEWHAT (Um tanto)"
+            },
+            {
+                id: 17,
+                category: "Professional",
+                context: "Are you busy?",
+                mistake: "I am more or less busy.",
+                correction: "I am pretty busy.",
+                explanation: "'Pretty busy' is the standard way to say you have a lot to do.",
+                association: "🧠 BUSY = PRETTY (Bem ocupado)"
+            },
+            {
+                id: 18,
+                category: "Professional",
+                context: "How is the project going?",
+                mistake: "So-so.",
+                correction: "It's coming along.",
+                explanation: "'It's coming along' means it is progressing, even if slowly.",
+                association: "🧠 PROGRESS = COMING ALONG (Indo)"
+            },
+            {
+                id: 19,
+                category: "Professional",
+                context: "Is the deadline Friday?",
+                mistake: "More or less Friday.",
+                correction: "Tentatively Friday.",
+                explanation: "'Tentatively' means it is the plan, but it might change. Very professional.",
+                association: "🧠 UNCERTAIN DATE = TENTATIVELY (Provisoriamente)"
+            },
+            {
+                id: 20,
+                category: "Professional",
+                context: "Did you finish the report?",
+                mistake: "More or less.",
+                correction: "I'm just wrapping it up.",
+                explanation: "'Wrapping it up' means you are at the very end.",
+                association: "🧠 FINISHING = WRAPPING UP (Finalizando)"
             }
         ];
 
@@ -140,7 +294,7 @@
         ];
 
         const App = () => {
-            const [activeTab, setActiveTab] = useState('logic');
+            const [activeTab, setActiveTab] = useState('fix'); // Default to "The Fix"
 
             // Drag State
             const [dragIndex, setDragIndex] = useState(0);
@@ -159,14 +313,12 @@
 
             // --- INITIALIZERS ---
             useEffect(() => {
-                // Init Drag
                 const items = [...DRAG_EXERCISES[dragIndex].sentence].sort(() => Math.random() - 0.5);
                 setDragItems(items);
                 setDragFeedback("");
             }, [dragIndex]);
 
             useEffect(() => {
-                // Init Translate
                 const correctWords = TRANSLATION_EXERCISES[transIndex].en;
                 const distractors = ["so-so", "more", "less", "very"];
                 const pool = [...correctWords, ...distractors].sort(() => Math.random() - 0.5);
@@ -176,31 +328,6 @@
             }, [transIndex]);
 
             // --- HANDLERS ---
-
-            // Drag Logic (Simple Click to Reorder for Mobile Friendliness)
-            const handleDragClick = (word) => {
-                const currentCorrect = DRAG_EXERCISES[dragIndex].sentence[dragItems.length - dragItems.length]; // Logic simplification for click-order
-                // Actually, let's do a swap logic or just re-shuffle. 
-                // Better: Click to move to a "built" line like translation.
-                // Let's keep the previous Drag Logic if it was working, but for single file without DND library, 
-                // "Click to Build" is safer and more robust. Let's convert Drag tab to "Unscramble".
-            };
-
-            // Since we are doing "Lego Method", let's use the "Click to Build" for the first exercise too.
-            // It's cleaner in a single file than native HTML5 drag/drop which can be buggy on mobile.
-
-            const handleUnscrambleClick = (word, fromPool) => {
-                if (fromPool) {
-                    setDragItems(dragItems.filter(w => w !== word));
-                    // Check if correct position immediately? No, let them build.
-                    // Actually, let's just use a simple "Build the sentence" state
-                    // We need a separate state for "Built" items in the first tab.
-                }
-            };
-
-            // Let's simplify: Tab 2 is Reorder. Tab 3 is Translate.
-            // We will use the same UI component for both: "Word Builder".
-
             const handleWordClick = (word, isPool, type) => {
                 if (type === 'translate') {
                     if (isPool) {
@@ -213,7 +340,6 @@
                 }
             };
 
-            // Check Translate
             useEffect(() => {
                 if (transBuilt.length > 0 && transBuilt.length === TRANSLATION_EXERCISES[transIndex].en.length) {
                     const attempt = transBuilt.join(" ");
@@ -233,8 +359,6 @@
                 }
             }, [transBuilt]);
 
-
-            // Situation Handler
             const handleSituationChoice = (choice) => {
                 if (choice === SITUATION_EXERCISES[sitIndex].correct) {
                     setSitFeedback("CORRECT! ✅");
@@ -262,7 +386,7 @@
 
                     {/* NAVIGATION */}
                     <nav className="flex justify-center gap-2 p-4 flex-wrap">
-                        {['logic', 'fix', 'reorder', 'translate', 'situations'].map(tab => (
+                        {['fix', 'logic', 'reorder', 'translate', 'situations'].map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -272,8 +396,8 @@
                                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                 }`}
                             >
+                                {tab === 'fix' && '🛠️ The Fix (20)'}
                                 {tab === 'logic' && '🧠 Logic'}
-                                {tab === 'fix' && '🛠️ The Fix'}
                                 {tab === 'reorder' && '🧱 Reorder'}
                                 {tab === 'translate' && '🔄 Translate'}
                                 {tab === 'situations' && '🎬 Situations'}
@@ -284,7 +408,69 @@
                     {/* MAIN CONTENT AREA */}
                     <main className="p-4 md:p-8 max-w-4xl mx-auto">
 
-                        {/* --- SECTION 1: LOGIC --- */}
+                        {/* --- SECTION 1: THE FIX (WALKTHROUGH) --- */}
+                        {activeTab === 'fix' && (
+                            <div className="space-y-8 animate-fadeIn">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-2xl font-bold text-white">20 Walkthrough Scenarios</h2>
+                                    <p className="text-gray-400">See exactly what you <span className="text-red-400">CAN'T</span> use and what is <span className="text-lime-400">PREFERRED</span>.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {SCENARIOS.map((scenario) => (
+                                        <div key={scenario.id} className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl hover:border-cyan-500/30 transition-all">
+                                            {/* Context Header */}
+                                            <div className="bg-gray-800 p-4 border-b border-gray-700 flex items-center justify-between">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{scenario.category}</span>
+                                                <div className="bg-cyan-500/20 px-2 py-1 rounded text-cyan-400 font-bold text-xs">
+                                                    #{scenario.id}
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-gray-800/50 border-b border-gray-700">
+                                                <h3 className="font-bold text-gray-200 text-sm">{scenario.context}</h3>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 h-full">
+                                                {/* The Mistake */}
+                                                <div className="p-4 bg-red-900/10 border-r border-gray-800 flex flex-col justify-center relative">
+                                                    <div className="text-red-500 font-black text-[10px] tracking-widest uppercase mb-2">
+                                                        ❌ Don't Say
+                                                    </div>
+                                                    <p className="text-sm text-red-300 font-medium line-through decoration-red-500/50">
+                                                        "{scenario.mistake}"
+                                                    </p>
+                                                </div>
+
+                                                {/* The Fix */}
+                                                <div className="p-4 bg-lime-900/10 flex flex-col justify-center relative">
+                                                    <div className="text-lime-500 font-black text-[10px] tracking-widest uppercase mb-2">
+                                                        ✅ Preferred
+                                                    </div>
+                                                    <p className="text-sm text-lime-300 font-bold">
+                                                        "{scenario.correction}"
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* The Why & Association */}
+                                            <div className="p-4 bg-gray-800/80 border-t border-gray-700">
+                                                <p className="text-xs text-gray-400 mb-2">
+                                                    <span className="text-cyan-400 font-bold">Why? </span> 
+                                                    {scenario.explanation}
+                                                </p>
+                                                <div className="bg-black/30 p-2 rounded border border-gray-700/50">
+                                                    <p className="text-xs text-yellow-400 font-mono">
+                                                        {scenario.association}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- SECTION 2: LOGIC --- */}
                         {activeTab === 'logic' && (
                             <div className="grid gap-6 animate-fadeIn">
                                 {EXPLANATIONS.map((item, idx) => (
@@ -296,59 +482,7 @@
                             </div>
                         )}
 
-                        {/* --- SECTION 2: THE FIX (WALKTHROUGH) --- */}
-                        {activeTab === 'fix' && (
-                            <div className="space-y-8 animate-fadeIn">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-bold text-white">Walkthrough Scenarios</h2>
-                                    <p className="text-gray-400">See exactly what you <span className="text-red-400">CAN'T</span> use and what is <span className="text-lime-400">PREFERRED</span>.</p>
-                                </div>
-
-                                {SCENARIOS.map((scenario) => (
-                                    <div key={scenario.id} className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
-                                        {/* Context Header */}
-                                        <div className="bg-gray-800 p-4 border-b border-gray-700 flex items-center gap-3">
-                                            <div className="bg-cyan-500/20 p-2 rounded-lg text-cyan-400 font-bold text-sm">
-                                                SCENARIO {scenario.id}
-                                            </div>
-                                            <h3 className="font-bold text-gray-200">{scenario.context}</h3>
-                                        </div>
-
-                                        <div className="grid md:grid-cols-2">
-                                            {/* The Mistake */}
-                                            <div className="p-6 bg-red-900/10 border-r border-gray-800 flex flex-col justify-center relative">
-                                                <div className="absolute top-4 left-4 text-red-500 font-black text-xs tracking-widest uppercase">
-                                                    ❌ Don't Say
-                                                </div>
-                                                <p className="text-xl text-red-300 font-medium mt-4 line-through decoration-red-500/50">
-                                                    "{scenario.mistake}"
-                                                </p>
-                                            </div>
-
-                                            {/* The Fix */}
-                                            <div className="p-6 bg-lime-900/10 flex flex-col justify-center relative">
-                                                <div className="absolute top-4 left-4 text-lime-500 font-black text-xs tracking-widest uppercase">
-                                                    ✅ Preferred
-                                                </div>
-                                                <p className="text-xl text-lime-300 font-bold mt-4">
-                                                    "{scenario.correction}"
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* The Why */}
-                                        <div className="p-4 bg-gray-800/50 border-t border-gray-700">
-                                            <p className="text-sm text-gray-400">
-                                                <span className="text-cyan-400 font-bold">Why? </span> 
-                                                {scenario.explanation}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* --- SECTION 3: REORDER (Simulated Drag) --- */}
+                        {/* --- SECTION 3: REORDER --- */}
                         {activeTab === 'reorder' && (
                             <div className="animate-fadeIn max-w-2xl mx-auto">
                                 <div className="text-center mb-8">
@@ -356,11 +490,6 @@
                                     <h2 className="text-2xl font-bold mt-2">Unscramble the Sentence</h2>
                                     <p className="text-gray-400 mt-2 italic">"{DRAG_EXERCISES[dragIndex].hint}"</p>
                                 </div>
-
-                                {/* Area to show built sentence would go here, but for simplicity in this version, 
-                                    we will just show the shuffled blocks and let user mentally reorder or 
-                                    we can implement a swap. For now, let's use the Translation style builder 
-                                    because it's the most robust for mobile. */}
 
                                 <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 text-center">
                                     <p className="text-gray-400 mb-4">Put these in order:</p>
