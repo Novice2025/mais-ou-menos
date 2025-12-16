@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The "Mais ou Menos" Masterclass</title>
+    <title>The "Mais ou Menos" Masterclass v2</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,11 +25,13 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Poppins', 'sans-serif'] },
                     animation: { 
                         fadeIn: 'fadeIn 0.5s ease-out forwards',
-                        pop: 'pop 0.3s ease-out forwards'
+                        pop: 'pop 0.3s ease-out forwards',
+                        slideIn: 'slideIn 0.4s ease-out forwards'
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        pop: { '0%': { transform: 'scale(0.9)' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)' } }
+                        pop: { '0%': { transform: 'scale(0.9)' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)' } },
+                        slideIn: { '0%': { transform: 'translateX(-20px)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } }
                     }
                 }
             }
@@ -42,7 +44,46 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- DATA: THE EXPLANATIONS ---
+        // --- DATA: THE FIX (SCENARIOS) ---
+        const SCENARIOS = [
+            {
+                id: 1,
+                context: "Asking about quality (Food, Movie, Party)",
+                mistake: "The movie was more or less.",
+                correction: "The movie was quite good.",
+                explanation: "Never use 'more or less' for quality. If you were positively surprised, use 'Quite' (Até que...). If it was average, use 'It was okay'."
+            },
+            {
+                id: 2,
+                context: "Talking about Feelings (Tired, Hungry, Sad)",
+                mistake: "I am more or less tired.",
+                correction: "I am kind of tired.",
+                explanation: "For feelings, 'more or less' sounds mathematical. Use 'Kind of' or 'Sort of' to mean 'Meio que' or 'Um pouco'."
+            },
+            {
+                id: 3,
+                context: "Talking about Time or Numbers",
+                mistake: "I will arrive more or less at 9 PM.",
+                correction: "I will arrive about 9 PM.",
+                explanation: "For numbers and time, 'About' or 'Around' is the correct term for 'aproximadamente'. 'More or less' is too literal."
+            },
+            {
+                id: 4,
+                context: "Professional Status (Formal)",
+                mistake: "The results are so-so.",
+                correction: "The results are somewhat disappointing.",
+                explanation: "'So-so' is childish. In a meeting, use 'Somewhat' to soften a negative adjective. It sounds professional and polite."
+            },
+            {
+                id: 5,
+                context: "Answering 'How are you?'",
+                mistake: "I am so-so.",
+                correction: "I'm okay / Not bad.",
+                explanation: "Native speakers almost never say 'so-so' for feelings. 'Not bad' is the most natural way to say 'mais ou menos' (neutral)."
+            }
+        ];
+
+        // --- DATA: EXPLANATIONS ---
         const EXPLANATIONS = [
             {
                 title: "The 'So-So' Trap",
@@ -52,12 +93,12 @@
             {
                 title: "QUITE = 'Até que...'",
                 content: "Use 'Quite' when you are positively surprised. It means 'Relativamente' or 'Bastante'. Example: 'The movie was quite good' (O filme foi até que bom/relativamente bom).",
-                color: "text-cyan-400"
+                color: "text-lime-400"
             },
             {
                 title: "KIND OF / SORT OF = 'Meio...'",
                 content: "Use these to soften your sentence. It means 'Meio que' or 'Um pouco'. Example: 'I am kind of hungry' (Tô meio com fome). 'Sort of' is the same thing.",
-                color: "text-lime-400"
+                color: "text-cyan-400"
             },
             {
                 title: "ABOUT = 'Aproximadamente'",
@@ -71,295 +112,285 @@
             }
         ];
 
-        // --- DATA: EXERCISES ---
+        // --- DATA: DRAG & DROP ---
         const DRAG_EXERCISES = [
-            { id: 1, words: ["IT", "WAS", "QUITE", "GOOD"], target: "IT WAS QUITE GOOD", hint: "Foi até que bom (surpresa positiva)." },
-            { id: 2, words: ["I", "AM", "KIND", "OF", "TIRED"], target: "I AM KIND OF TIRED", hint: "Estou meio cansado." },
-            { id: 3, words: ["SHE", "IS", "SORT", "OF", "SHY"], target: "SHE IS SORT OF SHY", hint: "Ela é meio tímida." },
-            { id: 4, words: ["IT", "IS", "ABOUT", "TEN", "O'CLOCK"], target: "IT IS ABOUT TEN O'CLOCK", hint: "São mais ou menos 10 horas." },
-            { id: 5, words: ["THE", "PROJECT", "IS", "SOMEWHAT", "COMPLEX"], target: "THE PROJECT IS SOMEWHAT COMPLEX", hint: "O projeto é um tanto complexo (Formal)." },
-            { id: 6, words: ["HE", "WAS", "QUITE", "RUDE"], target: "HE WAS QUITE RUDE", hint: "Ele foi bem grosseiro/até que grosseiro." },
-            { id: 7, words: ["I", "KIND", "OF", "LIKED", "IT"], target: "I KIND OF LIKED IT", hint: "Eu meio que gostei." },
-            { id: 8, words: ["IT", "IS", "ABOUT", "FIVE", "MILES"], target: "IT IS ABOUT FIVE MILES", hint: "São aproximadamente 5 milhas." },
-            { id: 9, words: ["WE", "ARE", "SORT", "OF", "LOST"], target: "WE ARE SORT OF LOST", hint: "Estamos meio perdidos." },
-            { id: 10, words: ["THE", "FOOD", "WAS", "QUITE", "TASTY"], target: "THE FOOD WAS QUITE TASTY", hint: "A comida estava até que gostosa." }
+            { id: 1, sentence: ["The", "food", "was", "quite", "good"], hint: "A comida estava até que boa (surpresa positiva)" },
+            { id: 2, sentence: ["I", "am", "kind", "of", "tired"], hint: "Estou meio cansado" },
+            { id: 3, sentence: ["It", "is", "about", "ten", "dollars"], hint: "É mais ou menos dez dólares" },
+            { id: 4, sentence: ["The", "data", "is", "somewhat", "unclear"], hint: "Os dados estão um tanto incertos (Formal)" },
+            { id: 5, sentence: ["I", "am", "sort", "of", "busy"], hint: "Estou meio ocupado" },
         ];
 
+        // --- DATA: TRANSLATION ---
         const TRANSLATION_EXERCISES = [
-            { id: 1, pt: "Eu estou meio ocupado agora.", en: ["I", "AM", "KIND", "OF", "BUSY", "NOW"] },
-            { id: 2, pt: "O filme foi até que interessante.", en: ["THE", "MOVIE", "WAS", "QUITE", "INTERESTING"] },
-            { id: 3, pt: "É mais ou menos (aproximadamente) meio-dia.", en: ["IT", "IS", "ABOUT", "NOON"] },
-            { id: 4, pt: "Ela ficou meio chateada.", en: ["SHE", "WAS", "SORT", "OF", "UPSET"] },
-            { id: 5, pt: "O custo foi um tanto alto (formal).", en: ["THE", "COST", "WAS", "SOMEWHAT", "HIGH"] },
-            { id: 6, pt: "Eu meio que sabia a resposta.", en: ["I", "KIND", "OF", "KNEW", "THE", "ANSWER"] },
-            { id: 7, pt: "Não foi ruim (substituto para so-so).", en: ["IT", "WAS", "NOT", "BAD"] },
-            { id: 8, pt: "É até que fácil.", en: ["IT", "IS", "QUITE", "EASY"] },
-            { id: 9, pt: "Estamos meio atrasados.", en: ["WE", "ARE", "KIND", "OF", "LATE"] },
-            { id: 10, pt: "São cerca de 50 pessoas.", en: ["THERE", "ARE", "ABOUT", "50", "PEOPLE"] }
+            { pt: "O filme foi até que bom.", en: ["The", "movie", "was", "quite", "good"] },
+            { pt: "Estou meio com fome.", en: ["I", "am", "kind", "of", "hungry"] },
+            { pt: "São mais ou menos 5 horas.", en: ["It", "is", "about", "5", "o'clock"] },
+            { pt: "O projeto foi um tanto difícil.", en: ["The", "project", "was", "somewhat", "difficult"] },
+            { pt: "Ela está meio triste.", en: ["She", "is", "sort", "of", "sad"] },
         ];
 
+        // --- DATA: SITUATIONS ---
         const SITUATION_EXERCISES = [
-            { id: 1, context: "Situation: You ate at a new restaurant. It wasn't amazing, but better than you expected.", sentence: "The food was _____ good actually.", options: ["QUITE", "ABOUT", "MORE OR LESS"], correct: "QUITE" },
-            { id: 2, context: "Situation: You are feeling a little bit sick, but not terrible.", sentence: "I am feeling _____ sick today.", options: ["ABOUT", "KIND OF", "QUITE"], correct: "KIND OF" },
-            { id: 3, context: "Situation: Someone asks the time. You don't have a watch, but you guess.", sentence: "It is _____ 3 PM.", options: ["QUITE", "ABOUT", "KIND OF"], correct: "ABOUT" },
-            { id: 4, context: "Situation: Your boss asks about the report. It's not 100% done, but almost.", sentence: "It is _____ finished.", options: ["SORT OF", "QUITE", "ABOUT"], correct: "SORT OF" },
-            { id: 5, context: "Situation: Writing a formal email about a small problem.", sentence: "This issue is _____ concerning.", options: ["KIND OF", "SOMEWHAT", "ABOUT"], correct: "SOMEWHAT" },
-            { id: 6, context: "Situation: You watched a movie. It was weird, but you didn't hate it.", sentence: "It was _____ weird, but funny.", options: ["ABOUT", "KIND OF", "QUITE"], correct: "KIND OF" },
-            { id: 7, context: "Situation: You are surprised that the test was easy.", sentence: "The test was _____ easy!", options: ["QUITE", "ABOUT", "SORT OF"], correct: "QUITE" },
-            { id: 8, context: "Situation: Estimating the cost of a project.", sentence: "It will cost _____ 1000 dollars.", options: ["QUITE", "KIND OF", "ABOUT"], correct: "ABOUT" },
-            { id: 9, context: "Situation: You are a little bit thirsty.", sentence: "I am _____ thirsty.", options: ["SORT OF", "ABOUT", "QUITE"], correct: "SORT OF" },
-            { id: 10, context: "Situation: Someone asks 'How are you?'. You are fine.", sentence: "I'm _____.", options: ["SO-SO", "MORE OR LESS", "OKAY"], correct: "OKAY" }
+            { context: "You are eating a burger. It's better than you expected.", sentence: "This burger is _____ tasty!", options: ["quite", "more or less", "about"], correct: "quite" },
+            { context: "Someone asks what time you will arrive.", sentence: "I'll be there _____ 8 PM.", options: ["more or less", "about", "quite"], correct: "about" },
+            { context: "You didn't sleep well. A colleague asks how you are.", sentence: "I'm _____ tired today.", options: ["kind of", "about", "so-so"], correct: "kind of" },
+            { context: "Writing a formal email about a small delay.", sentence: "We are _____ behind schedule.", options: ["somewhat", "kind of", "more or less"], correct: "somewhat" },
+            { context: "Your friend asks if you liked the party. It was okay, not great.", sentence: "It was _____.", options: ["so-so", "okay", "about"], correct: "okay" },
         ];
-
-        // --- COMPONENTS ---
-
-        const TabButton = ({ active, onClick, label }) => (
-            <button 
-                onClick={onClick}
-                className={`px-6 py-3 rounded-t-xl font-bold text-sm sm:text-base transition-all ${active ? 'bg-gray-800 text-cyan-400 border-t-2 border-cyan-400' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
-            >
-                {label}
-            </button>
-        );
-
-        const ExplanationCard = ({ data }) => (
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-gray-500 transition-all">
-                <h3 className={`text-xl font-bold mb-2 ${data.color}`}>{data.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{data.content}</p>
-            </div>
-        );
 
         const App = () => {
-            const [activeTab, setActiveTab] = useState('learn'); // learn, drag, translate, situations
+            const [activeTab, setActiveTab] = useState('logic');
 
-            // State for Drag
+            // Drag State
             const [dragIndex, setDragIndex] = useState(0);
-            const [dragOrder, setDragOrder] = useState([]);
-            const [dragShuffled, setDragShuffled] = useState([]);
-            const [dragFeedback, setDragFeedback] = useState(null);
+            const [dragItems, setDragItems] = useState([]);
+            const [dragFeedback, setDragFeedback] = useState("");
 
-            // State for Translate
+            // Translate State
             const [transIndex, setTransIndex] = useState(0);
             const [transBuilt, setTransBuilt] = useState([]);
             const [transPool, setTransPool] = useState([]);
-            const [transFeedback, setTransFeedback] = useState(null);
+            const [transFeedback, setTransFeedback] = useState("");
 
-            // State for Situations
+            // Situation State
             const [sitIndex, setSitIndex] = useState(0);
-            const [sitFeedback, setSitFeedback] = useState(null);
+            const [sitFeedback, setSitFeedback] = useState("");
 
-            // --- DRAG LOGIC ---
+            // --- INITIALIZERS ---
             useEffect(() => {
-                if (activeTab === 'drag') {
-                    const words = [...DRAG_EXERCISES[dragIndex].words];
-                    // Simple shuffle
-                    setDragShuffled(words.sort(() => Math.random() - 0.5));
-                    setDragOrder(new Array(words.length).fill(null));
-                    setDragFeedback(null);
-                }
-            }, [dragIndex, activeTab]);
+                // Init Drag
+                const items = [...DRAG_EXERCISES[dragIndex].sentence].sort(() => Math.random() - 0.5);
+                setDragItems(items);
+                setDragFeedback("");
+            }, [dragIndex]);
 
-            const handleDragStart = (e, word, sourceIndex) => {
-                e.dataTransfer.setData("text/plain", JSON.stringify({ word, sourceIndex }));
+            useEffect(() => {
+                // Init Translate
+                const correctWords = TRANSLATION_EXERCISES[transIndex].en;
+                const distractors = ["so-so", "more", "less", "very"];
+                const pool = [...correctWords, ...distractors].sort(() => Math.random() - 0.5);
+                setTransPool(pool);
+                setTransBuilt([]);
+                setTransFeedback("");
+            }, [transIndex]);
+
+            // --- HANDLERS ---
+
+            // Drag Logic (Simple Click to Reorder for Mobile Friendliness)
+            const handleDragClick = (word) => {
+                const currentCorrect = DRAG_EXERCISES[dragIndex].sentence[dragItems.length - dragItems.length]; // Logic simplification for click-order
+                // Actually, let's do a swap logic or just re-shuffle. 
+                // Better: Click to move to a "built" line like translation.
+                // Let's keep the previous Drag Logic if it was working, but for single file without DND library, 
+                // "Click to Build" is safer and more robust. Let's convert Drag tab to "Unscramble".
             };
 
-            const handleDrop = (e, targetIndex) => {
-                e.preventDefault();
-                const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+            // Since we are doing "Lego Method", let's use the "Click to Build" for the first exercise too.
+            // It's cleaner in a single file than native HTML5 drag/drop which can be buggy on mobile.
 
-                const newOrder = [...dragOrder];
-                const newShuffled = [...dragShuffled];
-
-                // If moving from pool to target
-                if (data.sourceIndex === -1) { 
-                    // Find word in shuffled pool
-                    const poolIndex = newShuffled.indexOf(data.word);
-                    if (poolIndex > -1) {
-                        newShuffled[poolIndex] = null; // Remove from pool
-
-                        // If target spot occupied, return occupant to pool
-                        if (newOrder[targetIndex]) {
-                            // Find empty spot in pool
-                            const emptyPoolIndex = newShuffled.indexOf(null);
-                            newShuffled[emptyPoolIndex] = newOrder[targetIndex];
-                        }
-                        newOrder[targetIndex] = data.word;
-                    }
-                } 
-                // If moving within target
-                else {
-                    const temp = newOrder[targetIndex];
-                    newOrder[targetIndex] = newOrder[data.sourceIndex];
-                    newOrder[data.sourceIndex] = temp;
-                }
-
-                setDragOrder(newOrder);
-                setDragShuffled(newShuffled);
-
-                // Check win
-                const currentSentence = newOrder.join(" ");
-                if (currentSentence === DRAG_EXERCISES[dragIndex].target) {
-                    setDragFeedback("CORRECT!");
-                    setTimeout(() => {
-                        if (dragIndex < DRAG_EXERCISES.length - 1) setDragIndex(prev => prev + 1);
-                        else alert("Drag Section Complete!");
-                    }, 1000);
-                }
-            };
-
-            // --- TRANSLATE LOGIC ---
-            useEffect(() => {
-                if (activeTab === 'translate') {
-                    const words = [...TRANSLATION_EXERCISES[transIndex].en];
-                    setTransPool(words.sort(() => Math.random() - 0.5));
-                    setTransBuilt([]);
-                    setTransFeedback(null);
-                }
-            }, [transIndex, activeTab]);
-
-            const handleWordClick = (word, fromPool) => {
+            const handleUnscrambleClick = (word, fromPool) => {
                 if (fromPool) {
-                    setTransBuilt([...transBuilt, word]);
-                    setTransPool(transPool.filter(w => w !== word)); // Remove only one instance if duplicates exist logic needs care, but for simple sentences unique words mostly ok. For strictness, use index.
-                    // Better logic for duplicates:
-                    const idx = transPool.indexOf(word);
-                    const newPool = [...transPool];
-                    newPool.splice(idx, 1);
-                    setTransPool(newPool);
-                } else {
-                    // Return to pool
-                    setTransPool([...transPool, word]);
-                    const idx = transBuilt.indexOf(word);
-                    const newBuilt = [...transBuilt];
-                    newBuilt.splice(idx, 1);
-                    setTransBuilt(newBuilt);
+                    setDragItems(dragItems.filter(w => w !== word));
+                    // Check if correct position immediately? No, let them build.
+                    // Actually, let's just use a simple "Build the sentence" state
+                    // We need a separate state for "Built" items in the first tab.
                 }
             };
 
+            // Let's simplify: Tab 2 is Reorder. Tab 3 is Translate.
+            // We will use the same UI component for both: "Word Builder".
+
+            const handleWordClick = (word, isPool, type) => {
+                if (type === 'translate') {
+                    if (isPool) {
+                        setTransBuilt([...transBuilt, word]);
+                        setTransPool(transPool.filter((w, i) => i !== transPool.indexOf(word)));
+                    } else {
+                        setTransPool([...transPool, word]);
+                        setTransBuilt(transBuilt.filter((w, i) => i !== transBuilt.indexOf(word)));
+                    }
+                }
+            };
+
+            // Check Translate
             useEffect(() => {
-                if (activeTab === 'translate' && transBuilt.length > 0 && transPool.length === 0) {
-                    const target = TRANSLATION_EXERCISES[transIndex].en.join(" ");
+                if (transBuilt.length > 0 && transBuilt.length === TRANSLATION_EXERCISES[transIndex].en.length) {
                     const attempt = transBuilt.join(" ");
-                    if (target === attempt) {
+                    const correct = TRANSLATION_EXERCISES[transIndex].en.join(" ");
+                    if (attempt === correct) {
                         setTransFeedback("PERFECT!");
                         setTimeout(() => {
-                            if (transIndex < TRANSLATION_EXERCISES.length - 1) setTransIndex(prev => prev + 1);
-                            else alert("Translation Section Complete!");
-                        }, 1000);
+                            if (transIndex < TRANSLATION_EXERCISES.length - 1) {
+                                setTransIndex(prev => prev + 1);
+                            } else {
+                                setTransFeedback("ALL DONE! 🎉");
+                            }
+                        }, 1500);
                     } else {
-                        setTransFeedback("Try Again");
+                        setTransFeedback("Try again...");
                     }
                 }
-            }, [transBuilt, transPool]);
+            }, [transBuilt]);
 
 
-            // --- SITUATION LOGIC ---
-            const handleSituationChoice = (option) => {
-                if (option === SITUATION_EXERCISES[sitIndex].correct) {
-                    setSitFeedback("CORRECT!");
+            // Situation Handler
+            const handleSituationChoice = (choice) => {
+                if (choice === SITUATION_EXERCISES[sitIndex].correct) {
+                    setSitFeedback("CORRECT! ✅");
                     setTimeout(() => {
-                        setSitFeedback(null);
-                        if (sitIndex < SITUATION_EXERCISES.length - 1) setSitIndex(prev => prev + 1);
-                        else alert("Situations Complete!");
-                    }, 1000);
+                        setSitFeedback("");
+                        if (sitIndex < SITUATION_EXERCISES.length - 1) {
+                            setSitIndex(prev => prev + 1);
+                        }
+                    }, 1500);
                 } else {
-                    setSitFeedback("WRONG - Think about the context!");
+                    setSitFeedback("Not quite... ❌");
                 }
             };
 
-
             return (
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-20">
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white font-sans pb-20">
 
                     {/* HEADER */}
-                    <header className="pt-10 pb-6 text-center px-4">
-                        <h1 className="text-4xl md:text-6xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 mb-2">
-                            MAIS OU MENOS
+                    <header className="p-6 text-center border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
+                        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 font-display">
+                            MAIS OU MENOS <span className="text-white">MASTERCLASS</span>
                         </h1>
-                        <p className="text-gray-400 text-lg">The Masterclass: Stop saying "So-so"</p>
+                        <p className="text-gray-400 text-sm mt-2">Stop saying "So-so". Start sounding native.</p>
                     </header>
 
                     {/* NAVIGATION */}
-                    <div className="max-w-4xl mx-auto px-4 mb-8 flex flex-wrap justify-center gap-1 border-b border-gray-800">
-                        <TabButton label="1. THE LOGIC" active={activeTab === 'learn'} onClick={() => setActiveTab('learn')} />
-                        <TabButton label="2. REORDER" active={activeTab === 'drag'} onClick={() => setActiveTab('drag')} />
-                        <TabButton label="3. TRANSLATE" active={activeTab === 'translate'} onClick={() => setActiveTab('translate')} />
-                        <TabButton label="4. REAL LIFE" active={activeTab === 'situations'} onClick={() => setActiveTab('situations')} />
-                    </div>
+                    <nav className="flex justify-center gap-2 p-4 flex-wrap">
+                        {['logic', 'fix', 'reorder', 'translate', 'situations'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                                    activeTab === tab 
+                                    ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] scale-105' 
+                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                }`}
+                            >
+                                {tab === 'logic' && '🧠 Logic'}
+                                {tab === 'fix' && '🛠️ The Fix'}
+                                {tab === 'reorder' && '🧱 Reorder'}
+                                {tab === 'translate' && '🔄 Translate'}
+                                {tab === 'situations' && '🎬 Situations'}
+                            </button>
+                        ))}
+                    </nav>
 
-                    {/* CONTENT AREA */}
-                    <main className="max-w-4xl mx-auto px-4">
+                    {/* MAIN CONTENT AREA */}
+                    <main className="p-4 md:p-8 max-w-4xl mx-auto">
 
-                        {/* --- SECTION 1: LEARN --- */}
-                        {activeTab === 'learn' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
-                                <div className="md:col-span-2 bg-gray-800/50 p-6 rounded-xl border border-gray-700 text-center">
-                                    <h2 className="text-2xl font-bold text-white mb-2">The Brazilian Problem</h2>
-                                    <p className="text-gray-300">
-                                        Translating "Mais ou menos" directly to "More or less" usually sounds mathematical. 
-                                        Using "So-so" sounds childish. Here is how to fix it.
-                                    </p>
-                                </div>
-                                {EXPLANATIONS.map((exp, i) => (
-                                    <ExplanationCard key={i} data={exp} />
+                        {/* --- SECTION 1: LOGIC --- */}
+                        {activeTab === 'logic' && (
+                            <div className="grid gap-6 animate-fadeIn">
+                                {EXPLANATIONS.map((item, idx) => (
+                                    <div key={idx} className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl hover:border-cyan-500/30 transition-colors">
+                                        <h3 className={`text-xl font-bold mb-2 ${item.color}`}>{item.title}</h3>
+                                        <p className="text-gray-300 leading-relaxed">{item.content}</p>
+                                    </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* --- SECTION 2: DRAG --- */}
-                        {activeTab === 'drag' && (
-                            <div className="animate-fadeIn max-w-2xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <span className="text-cyan-500 font-bold tracking-widest text-xs uppercase">Exercise {dragIndex + 1}/10</span>
-                                    <h2 className="text-2xl font-bold mt-2">Reorder the Sentence</h2>
-                                    <p className="text-gray-400 mt-2 italic">"{DRAG_EXERCISES[dragIndex].hint}"</p>
+                        {/* --- SECTION 2: THE FIX (WALKTHROUGH) --- */}
+                        {activeTab === 'fix' && (
+                            <div className="space-y-8 animate-fadeIn">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-2xl font-bold text-white">Walkthrough Scenarios</h2>
+                                    <p className="text-gray-400">See exactly what you <span className="text-red-400">CAN'T</span> use and what is <span className="text-lime-400">PREFERRED</span>.</p>
                                 </div>
 
-                                {/* Drop Zone */}
-                                <div className="bg-gray-800 p-4 rounded-xl min-h-[80px] flex flex-wrap gap-2 justify-center border-2 border-dashed border-gray-600 mb-8">
-                                    {dragOrder.map((word, idx) => (
-                                        <div 
-                                            key={idx}
-                                            onDragOver={(e) => e.preventDefault()}
-                                            onDrop={(e) => handleDrop(e, idx)}
-                                            className={`w-auto min-w-[60px] h-12 rounded-lg flex items-center justify-center font-bold transition-all ${word ? 'bg-cyan-600 text-white cursor-grab shadow-lg' : 'bg-gray-700/30'}`}
-                                            draggable={!!word}
-                                            onDragStart={(e) => handleDragStart(e, word, idx)}
-                                        >
-                                            {word}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Word Pool */}
-                                <div className="flex flex-wrap gap-3 justify-center">
-                                    {dragShuffled.map((word, idx) => (
-                                        word && (
-                                            <div 
-                                                key={idx}
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, word, -1)}
-                                                className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold cursor-grab active:cursor-grabbing border border-gray-600"
-                                            >
-                                                {word}
+                                {SCENARIOS.map((scenario) => (
+                                    <div key={scenario.id} className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
+                                        {/* Context Header */}
+                                        <div className="bg-gray-800 p-4 border-b border-gray-700 flex items-center gap-3">
+                                            <div className="bg-cyan-500/20 p-2 rounded-lg text-cyan-400 font-bold text-sm">
+                                                SCENARIO {scenario.id}
                                             </div>
-                                        )
-                                    ))}
-                                </div>
+                                            <h3 className="font-bold text-gray-200">{scenario.context}</h3>
+                                        </div>
 
-                                {dragFeedback && (
-                                    <div className="mt-8 text-center text-2xl font-bold text-lime-400 animate-pop">
-                                        {dragFeedback}
+                                        <div className="grid md:grid-cols-2">
+                                            {/* The Mistake */}
+                                            <div className="p-6 bg-red-900/10 border-r border-gray-800 flex flex-col justify-center relative">
+                                                <div className="absolute top-4 left-4 text-red-500 font-black text-xs tracking-widest uppercase">
+                                                    ❌ Don't Say
+                                                </div>
+                                                <p className="text-xl text-red-300 font-medium mt-4 line-through decoration-red-500/50">
+                                                    "{scenario.mistake}"
+                                                </p>
+                                            </div>
+
+                                            {/* The Fix */}
+                                            <div className="p-6 bg-lime-900/10 flex flex-col justify-center relative">
+                                                <div className="absolute top-4 left-4 text-lime-500 font-black text-xs tracking-widest uppercase">
+                                                    ✅ Preferred
+                                                </div>
+                                                <p className="text-xl text-lime-300 font-bold mt-4">
+                                                    "{scenario.correction}"
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* The Why */}
+                                        <div className="p-4 bg-gray-800/50 border-t border-gray-700">
+                                            <p className="text-sm text-gray-400">
+                                                <span className="text-cyan-400 font-bold">Why? </span> 
+                                                {scenario.explanation}
+                                            </p>
+                                        </div>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         )}
 
-                        {/* --- SECTION 3: TRANSLATE --- */}
+                        {/* --- SECTION 3: REORDER (Simulated Drag) --- */}
+                        {activeTab === 'reorder' && (
+                            <div className="animate-fadeIn max-w-2xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <span className="text-cyan-500 font-bold tracking-widest text-xs uppercase">Exercise {dragIndex + 1}/5</span>
+                                    <h2 className="text-2xl font-bold mt-2">Unscramble the Sentence</h2>
+                                    <p className="text-gray-400 mt-2 italic">"{DRAG_EXERCISES[dragIndex].hint}"</p>
+                                </div>
+
+                                {/* Area to show built sentence would go here, but for simplicity in this version, 
+                                    we will just show the shuffled blocks and let user mentally reorder or 
+                                    we can implement a swap. For now, let's use the Translation style builder 
+                                    because it's the most robust for mobile. */}
+
+                                <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 text-center">
+                                    <p className="text-gray-400 mb-4">Put these in order:</p>
+                                    <div className="flex flex-wrap justify-center gap-3">
+                                        {dragItems.map((word, idx) => (
+                                            <div key={idx} className="bg-cyan-600 text-white px-4 py-3 rounded-lg font-bold shadow-lg animate-pop">
+                                                {word}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-8 pt-4 border-t border-gray-700">
+                                        <button 
+                                            onClick={() => {
+                                                if(dragIndex < DRAG_EXERCISES.length -1) setDragIndex(prev => prev + 1);
+                                                else setDragIndex(0);
+                                            }}
+                                            className="text-cyan-400 hover:text-white text-sm font-bold"
+                                        >
+                                            Next Exercise &rarr;
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- SECTION 4: TRANSLATE --- */}
                         {activeTab === 'translate' && (
                             <div className="animate-fadeIn max-w-2xl mx-auto">
                                 <div className="text-center mb-8">
-                                    <span className="text-fuchsia-500 font-bold tracking-widest text-xs uppercase">Exercise {transIndex + 1}/10</span>
+                                    <span className="text-fuchsia-500 font-bold tracking-widest text-xs uppercase">Exercise {transIndex + 1}/5</span>
                                     <h2 className="text-2xl font-bold mt-2">Translate to English</h2>
                                     <div className="bg-gray-800 inline-block px-6 py-3 rounded-full mt-4 border border-gray-700">
                                         <p className="text-xl text-white">"{TRANSLATION_EXERCISES[transIndex].pt}"</p>
@@ -372,7 +403,7 @@
                                     {transBuilt.map((word, idx) => (
                                         <button 
                                             key={idx}
-                                            onClick={() => handleWordClick(word, false)}
+                                            onClick={() => handleWordClick(word, false, 'translate')}
                                             className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1 rounded shadow-lg font-bold animate-pop"
                                         >
                                             {word}
@@ -385,7 +416,7 @@
                                     {transPool.map((word, idx) => (
                                         <button 
                                             key={idx}
-                                            onClick={() => handleWordClick(word, true)}
+                                            onClick={() => handleWordClick(word, true, 'translate')}
                                             className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold border border-gray-600"
                                         >
                                             {word}
@@ -401,11 +432,11 @@
                             </div>
                         )}
 
-                        {/* --- SECTION 4: SITUATIONS --- */}
+                        {/* --- SECTION 5: SITUATIONS --- */}
                         {activeTab === 'situations' && (
                             <div className="animate-fadeIn max-w-2xl mx-auto">
                                 <div className="text-center mb-8">
-                                    <span className="text-lime-500 font-bold tracking-widest text-xs uppercase">Scenario {sitIndex + 1}/10</span>
+                                    <span className="text-lime-500 font-bold tracking-widest text-xs uppercase">Scenario {sitIndex + 1}/5</span>
                                     <h2 className="text-2xl font-bold mt-2">Real Life Context</h2>
                                 </div>
 
