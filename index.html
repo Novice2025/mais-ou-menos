@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The "Mais ou Menos" Masterclass - Expanded</title>
+    <title>Mais ou Menos Masterclass v5 (Final Fix)</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,12 +26,12 @@
                     animation: { 
                         fadeIn: 'fadeIn 0.5s ease-out forwards',
                         pop: 'pop 0.3s ease-out forwards',
-                        slideIn: 'slideIn 0.4s ease-out forwards'
+                        slideUp: 'slideUp 0.3s ease-out forwards',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
                         pop: { '0%': { transform: 'scale(0.9)' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)' } },
-                        slideIn: { '0%': { transform: 'translateX(-20px)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } }
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
                     }
                 }
             }
@@ -42,531 +42,445 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // --- DATA: THE FIX (20 SCENARIOS) ---
+        // --- DATA: 20 SCENARIOS (THE FIX) ---
         const SCENARIOS = [
-            // --- GROUP 1: QUALITY & FEELINGS ---
-            {
-                id: 1,
-                category: "Quality",
-                context: "The movie was better than you expected.",
-                mistake: "The movie was more or less.",
-                correction: "The movie was quite good.",
-                explanation: "If you are positively surprised, use 'Quite'. 'More or less' sounds like you are calculating a math equation.",
-                association: "🧠 SURPRISE = QUITE (Até que...)"
-            },
-            {
-                id: 2,
-                category: "Feelings",
-                context: "You are a little bit tired.",
-                mistake: "I am more or less tired.",
-                correction: "I am kind of tired.",
-                explanation: "Use 'Kind of' or 'Sort of' to soften a feeling. It means 'Meio que'.",
-                association: "🧠 SOFTEN = KIND OF (Meio...)"
-            },
-            {
-                id: 3,
-                category: "Feelings",
-                context: "Someone asks 'How are you?'",
-                mistake: "I am so-so.",
-                correction: "I'm okay / Not bad.",
-                explanation: "'So-so' is very childish. Adults say 'Not bad' or 'I've been better'.",
-                association: "🧠 ADULT = NOT BAD (Nada mal)"
-            },
-            {
-                id: 4,
-                category: "Quality",
-                context: "The food was average.",
-                mistake: "The food was so-so.",
-                correction: "The food was alright / okay.",
-                explanation: "'Alright' is the perfect neutral word for food or experiences.",
-                association: "🧠 NEUTRAL = ALRIGHT (Tudo bem)"
-            },
-
-            // --- GROUP 2: NUMBERS & TIME ---
-            {
-                id: 5,
-                category: "Numbers",
-                context: "Estimating arrival time (9:00 PM).",
-                mistake: "I arrive more or less 9 PM.",
-                correction: "I'll arrive around 9 PM.",
-                explanation: "For time, always use 'Around' or 'About'. Never 'more or less'.",
-                association: "🧠 CLOCK = AROUND (Por volta de)"
-            },
-            {
-                id: 6,
-                category: "Numbers",
-                context: "Estimating a price ($50).",
-                mistake: "It costs more or less $50.",
-                correction: "It costs about $50.",
-                explanation: "For money and quantities, 'About' is the standard approximation.",
-                association: "🧠 MONEY = ABOUT (Cerca de)"
-            },
-            {
-                id: 7,
-                category: "Numbers",
-                context: "Estimating a crowd size (100 people).",
-                mistake: "There were more or less 100 people.",
-                correction: "There were roughly 100 people.",
-                explanation: "'Roughly' is a great professional word for estimation.",
-                association: "🧠 ESTIMATE = ROUGHLY (Grosseiramente)"
-            },
-            {
-                id: 8,
-                category: "Numbers",
-                context: "Estimating Age (40 years old).",
-                mistake: "He is more or less 40.",
-                correction: "He is around 40.",
-                explanation: "We don't use 'more or less' for age. Use 'Around'.",
-                association: "🧠 AGE = AROUND (Por volta de)"
-            },
-
-            // --- GROUP 3: COMPLETION & CERTAINTY ---
-            {
-                id: 9,
-                category: "Completion",
-                context: "Is the project finished?",
-                mistake: "It is more or less finished.",
-                correction: "It is almost finished.",
-                explanation: "If you are near the end, use 'Almost' or 'Nearly'.",
-                association: "🧠 NEAR THE END = ALMOST (Quase)"
-            },
-            {
-                id: 10,
-                category: "Certainty",
-                context: "Are you sure about the decision?",
-                mistake: "I am more or less sure.",
-                correction: "I am pretty sure.",
-                explanation: "'Pretty sure' means you are confident, but not 100%.",
-                association: "🧠 CONFIDENCE = PRETTY SURE (Tenho quase certeza)"
-            },
-            {
-                id: 11,
-                category: "Understanding",
-                context: "Did you understand the meeting?",
-                mistake: "I understood more or less.",
-                correction: "I understood most of it.",
-                explanation: "Saying 'more or less' sounds like you understood nothing. 'Most of it' sounds positive.",
-                association: "🧠 POSITIVE = MOST OF IT (A maior parte)"
-            },
-            {
-                id: 12,
-                category: "Agreement",
-                context: "Do you agree with him?",
-                mistake: "I agree more or less.",
-                correction: "I somewhat agree.",
-                explanation: "'Somewhat' is professional and polite for partial agreement.",
-                association: "🧠 PARTIAL = SOMEWHAT (Em parte)"
-            },
-
-            // --- GROUP 4: INTENSITY & DISTANCE ---
-            {
-                id: 13,
-                category: "Distance",
-                context: "Is the office far?",
-                mistake: "It is more or less far.",
-                correction: "It is quite far.",
-                explanation: "Use 'Quite' to emphasize distance. 'A bit far' works too.",
-                association: "🧠 DISTANCE = QUITE (Bem longe)"
-            },
-            {
-                id: 14,
-                category: "Intensity",
-                context: "It is raining lightly.",
-                mistake: "It is raining more or less.",
-                correction: "It is drizzling / kind of raining.",
-                explanation: "Use specific verbs like 'drizzling' or soften with 'kind of'.",
-                association: "🧠 WEATHER = KIND OF (Meio que)"
-            },
-            {
-                id: 15,
-                category: "Intensity",
-                context: "The test was difficult.",
-                mistake: "The test was so-so difficult.",
-                correction: "The test was rather difficult.",
-                explanation: "'So-so' cannot be used as an adverb before an adjective. Use 'Rather' or 'Pretty'.",
-                association: "🧠 ADVERB = RATHER (Bastante)"
-            },
-
-            // --- GROUP 5: PROFESSIONAL & FORMAL ---
-            {
-                id: 16,
-                category: "Professional",
-                context: "The results were bad (Polite).",
-                mistake: "The results were so-so.",
-                correction: "The results were somewhat disappointing.",
-                explanation: "In business, we soften bad news with 'Somewhat'.",
-                association: "🧠 BAD NEWS = SOMEWHAT (Um tanto)"
-            },
-            {
-                id: 17,
-                category: "Professional",
-                context: "Are you busy?",
-                mistake: "I am more or less busy.",
-                correction: "I am pretty busy.",
-                explanation: "'Pretty busy' is the standard way to say you have a lot to do.",
-                association: "🧠 BUSY = PRETTY (Bem ocupado)"
-            },
-            {
-                id: 18,
-                category: "Professional",
-                context: "How is the project going?",
-                mistake: "So-so.",
-                correction: "It's coming along.",
-                explanation: "'It's coming along' means it is progressing, even if slowly.",
-                association: "🧠 PROGRESS = COMING ALONG (Indo)"
-            },
-            {
-                id: 19,
-                category: "Professional",
-                context: "Is the deadline Friday?",
-                mistake: "More or less Friday.",
-                correction: "Tentatively Friday.",
-                explanation: "'Tentatively' means it is the plan, but it might change. Very professional.",
-                association: "🧠 UNCERTAIN DATE = TENTATIVELY (Provisoriamente)"
-            },
-            {
-                id: 20,
-                category: "Professional",
-                context: "Did you finish the report?",
-                mistake: "More or less.",
-                correction: "I'm just wrapping it up.",
-                explanation: "'Wrapping it up' means you are at the very end.",
-                association: "🧠 FINISHING = WRAPPING UP (Finalizando)"
-            }
+            { id: 1, context: "Food Quality (Positive Surprise)", mistake: "The pizza was more or less.", correction: "The pizza was quite good.", explanation: "Use 'Quite' when something is better than you expected.", association: "🧠 Memory Hook: Quite = 'Até que...' (Surpresa Boa)" },
+            { id: 2, context: "Feelings (Softening)", mistake: "I am more or less tired.", correction: "I am kind of tired.", explanation: "Use 'Kind of' or 'Sort of' to soften a feeling. It means 'Meio que'.", association: "🧠 Memory Hook: Kind of = 'Meio que' (Suavizar)" },
+            { id: 3, context: "Time & Numbers (Approximation)", mistake: "It takes more or less 2 hours.", correction: "It takes about 2 hours.", explanation: "For numbers, time, and quantity, always use 'About' or 'Around'.", association: "🧠 Memory Hook: Numbers = About (Cerca de)" },
+            { id: 4, context: "Professional Agreement (Partial)", mistake: "I agree more or less.", correction: "I somewhat agree.", explanation: "In business, 'Somewhat' is professional and polite for partial agreement.", association: "🧠 Memory Hook: Somewhat = 'De certa forma' (Formal)" },
+            { id: 5, context: "Completion (Status)", mistake: "The project is more or less finished.", correction: "The project is almost finished.", explanation: "If it is near the end, use 'Almost'. 'More or less' sounds like you don't know.", association: "🧠 Memory Hook: Almost = 'Quase' (Perto do fim)" },
+            { id: 6, context: "Weather (Uncertainty)", mistake: "It is more or less raining.", correction: "It looks like rain.", explanation: "We don't quantify rain. We describe the appearance.", association: "🧠 Memory Hook: Looks like = 'Parece que'" },
+            { id: 7, context: "Distance (Approximation)", mistake: "It is more or less 10km.", correction: "It is about 10km.", explanation: "Again, for any number or distance, use 'About'.", association: "🧠 Memory Hook: Distance = About" },
+            { id: 8, context: "Cost (Approximation)", mistake: "It costs more or less $50.", correction: "It costs around $50.", explanation: "For money, 'Around' or 'About' is perfect.", association: "🧠 Memory Hook: Money = Around" },
+            { id: 9, context: "Understanding (Partial)", mistake: "I understand more or less.", correction: "I sort of understand.", explanation: "Use 'Sort of' to admit you are confused but got the main idea.", association: "🧠 Memory Hook: Sort of = 'Mais ou menos' (Confuso)" },
+            { id: 10, context: "Health (Not feeling well)", mistake: "I am more or less sick.", correction: "I feel a bit under the weather.", explanation: "Native idiom. 'More or less sick' sounds strange.", association: "🧠 Memory Hook: Under the weather = 'Meio mal'" },
+            { id: 11, context: "Movies/Books (Opinion)", mistake: "The movie was so-so.", correction: "The movie was okay / average.", explanation: "'So-so' is childish. 'Average' or 'Okay' is adult.", association: "🧠 Memory Hook: Average = 'Mediano'" },
+            { id: 12, context: "Frequency (Occasional)", mistake: "I go there more or less.", correction: "I go there occasionally.", explanation: "If you mean 'sometimes', use 'Occasionally' or 'Now and then'.", association: "🧠 Memory Hook: Occasionally = 'De vez em quando'" },
+            { id: 13, context: "Certainty (Unsure)", mistake: "I am more or less sure.", correction: "I am pretty sure.", explanation: "'Pretty sure' means 80-90% sure. 'More or less sure' is confusing.", association: "🧠 Memory Hook: Pretty sure = 'Quase certeza'" },
+            { id: 14, context: "Difficulty (Moderate)", mistake: "It is more or less hard.", correction: "It is moderately difficult.", explanation: "'Moderately' is the precise word for 'medium difficulty'.", association: "🧠 Memory Hook: Moderately = 'Moderadamente'" },
+            { id: 15, context: "Traffic (Intensity)", mistake: "There is more or less traffic.", correction: "There is some traffic.", explanation: "We say 'some traffic' (a bit) or 'heavy traffic' (a lot).", association: "🧠 Memory Hook: Some traffic = 'Um pouco de trânsito'" },
+            { id: 16, context: "Temperature (Room)", mistake: "The water is more or less warm.", correction: "The water is lukewarm.", explanation: "Specific word for 'nem quente nem frio'.", association: "🧠 Memory Hook: Lukewarm = 'Morno'" },
+            { id: 17, context: "Clothing (Fit)", mistake: "It fits more or less.", correction: "It fits okay / It's a bit loose.", explanation: "Be specific. Is it big? Small? Okay?", association: "🧠 Memory Hook: A bit loose/tight = 'Meio largo/apertado'" },
+            { id: 18, context: "Taste (Food)", mistake: "It tastes more or less.", correction: "It tastes bland.", explanation: "If it has no flavor, say 'Bland'.", association: "🧠 Memory Hook: Bland = 'Sem graça'" },
+            { id: 19, context: "Relationship (Status)", mistake: "We are more or less friends.", correction: "We are acquaintances.", explanation: "Someone you know but aren't close with.", association: "🧠 Memory Hook: Acquaintance = 'Conhecido'" },
+            { id: 20, context: "Safety (Risk)", mistake: "It is more or less safe.", correction: "It is relatively safe.", explanation: "Use 'Relatively' when comparing risks.", association: "🧠 Memory Hook: Relatively = 'Relativamente'" }
         ];
 
-        // --- DATA: EXPLANATIONS ---
-        const EXPLANATIONS = [
-            {
-                title: "The 'So-So' Trap",
-                content: "Brazilians love to say 'So-so'. Stop it! Native speakers rarely use it unless they are children. If someone asks 'How are you?', don't say 'So-so'. Say 'I'm okay', 'Not bad', or 'I'm kind of tired'.",
-                color: "text-red-400"
-            },
-            {
-                title: "QUITE = 'Até que...'",
-                content: "Use 'Quite' when you are positively surprised. It means 'Relativamente' or 'Bastante'. Example: 'The movie was quite good' (O filme foi até que bom/relativamente bom).",
-                color: "text-lime-400"
-            },
-            {
-                title: "KIND OF / SORT OF = 'Meio...'",
-                content: "Use these to soften your sentence. It means 'Meio que' or 'Um pouco'. Example: 'I am kind of hungry' (Tô meio com fome). 'Sort of' is the same thing.",
-                color: "text-cyan-400"
-            },
-            {
-                title: "ABOUT = 'Aproximadamente'",
-                content: "Use for numbers, time, or quantities. Don't use 'More or less' for time! Say: 'It's about 5 PM' (São mais ou menos 5 da tarde).",
-                color: "text-fuchsia-400"
-            },
-            {
-                title: "SOMEWHAT = 'Algo/Um tanto'",
-                content: "This is the formal version of 'Kind of'. Use it in professional emails. 'The results were somewhat disappointing.'",
-                color: "text-yellow-400"
-            }
+        // --- DATA: LOGIC ---
+        const LOGIC_DATA = [
+            { title: "The 'So-So' Trap", content: "If you ask a native speaker 'How are you?' and they say 'So-so', they are probably 5 years old. Adults say: 'I'm okay', 'Not too bad', or 'Getting by'.", color: "text-red-400" },
+            { title: "The Mathematical Mistake", content: "In Portuguese, 'Mais ou menos' is a universal tool. In English, 'More or less' is mathematical. 'It is more or less 10km' sounds like a calculation. Use 'About 10km'.", color: "text-yellow-400" },
+            { title: "The 'Quite' Solution", content: "When something is 'Mais ou menos' but in a GOOD way (Surpresa boa), use QUITE. 'The movie was quite good' = 'O filme foi até que bom'.", color: "text-lime-400" },
+            { title: "The 'Kind of' Softener", content: "When you want to soften a negative adjective, use KIND OF. 'I am kind of tired' (Meio cansado). 'It is kind of expensive' (Meio caro).", color: "text-cyan-400" }
         ];
 
-        // --- DATA: DRAG & DROP ---
+        // --- DATA: REORDER EXERCISES ---
         const DRAG_EXERCISES = [
-            { id: 1, sentence: ["The", "food", "was", "quite", "good"], hint: "A comida estava até que boa (surpresa positiva)" },
-            { id: 2, sentence: ["I", "am", "kind", "of", "tired"], hint: "Estou meio cansado" },
-            { id: 3, sentence: ["It", "is", "about", "ten", "dollars"], hint: "É mais ou menos dez dólares" },
-            { id: 4, sentence: ["The", "data", "is", "somewhat", "unclear"], hint: "Os dados estão um tanto incertos (Formal)" },
-            { id: 5, sentence: ["I", "am", "sort", "of", "busy"], hint: "Estou meio ocupado" },
+            { id: 1, hint: "O filme foi até que bom (Surpresa boa)", target: ["THE", "MOVIE", "WAS", "QUITE", "GOOD"] },
+            { id: 2, hint: "Eu estou meio cansado hoje", target: ["I", "AM", "KIND", "OF", "TIRED", "TODAY"] },
+            { id: 3, hint: "Custa cerca de 50 dólares", target: ["IT", "COSTS", "ABOUT", "50", "DOLLARS"] },
+            { id: 4, hint: "O projeto está quase pronto", target: ["THE", "PROJECT", "IS", "ALMOST", "FINISHED"] },
+            { id: 5, hint: "Eu meio que concordo com você", target: ["I", "SORT", "OF", "AGREE", "WITH", "YOU"] }
         ];
 
-        // --- DATA: TRANSLATION ---
+        // --- DATA: TRANSLATION EXERCISES ---
         const TRANSLATION_EXERCISES = [
-            { pt: "O filme foi até que bom.", en: ["The", "movie", "was", "quite", "good"] },
-            { pt: "Estou meio com fome.", en: ["I", "am", "kind", "of", "hungry"] },
-            { pt: "São mais ou menos 5 horas.", en: ["It", "is", "about", "5", "o'clock"] },
-            { pt: "O projeto foi um tanto difícil.", en: ["The", "project", "was", "somewhat", "difficult"] },
-            { pt: "Ela está meio triste.", en: ["She", "is", "sort", "of", "sad"] },
+            { pt: "O tempo está meio frio hoje.", en: "THE WEATHER IS KIND OF COLD TODAY" },
+            { pt: "O resultado foi até que impressionante.", en: "THE RESULT WAS QUITE IMPRESSIVE" },
+            { pt: "É cerca de 2 horas daqui.", en: "IT IS ABOUT 2 HOURS FROM HERE" },
+            { pt: "Eu estou meio confuso sobre isso.", en: "I AM SORT OF CONFUSED ABOUT THIS" },
+            { pt: "O trânsito está meio ruim.", en: "THE TRAFFIC IS RATHER BAD" }
         ];
 
         // --- DATA: SITUATIONS ---
         const SITUATION_EXERCISES = [
-            { context: "You are eating a burger. It's better than you expected.", sentence: "This burger is _____ tasty!", options: ["quite", "more or less", "about"], correct: "quite" },
-            { context: "Someone asks what time you will arrive.", sentence: "I'll be there _____ 8 PM.", options: ["more or less", "about", "quite"], correct: "about" },
-            { context: "You didn't sleep well. A colleague asks how you are.", sentence: "I'm _____ tired today.", options: ["kind of", "about", "so-so"], correct: "kind of" },
-            { context: "Writing a formal email about a small delay.", sentence: "We are _____ behind schedule.", options: ["somewhat", "kind of", "more or less"], correct: "somewhat" },
-            { context: "Your friend asks if you liked the party. It was okay, not great.", sentence: "It was _____.", options: ["so-so", "okay", "about"], correct: "okay" },
+            { context: "You are at a restaurant. The waiter asks how the food was. It was okay, but not amazing.", sentence: "It was _____ good.", options: ["QUITE", "MORE OR LESS", "SO-SO"] },
+            { context: "Your boss asks if the report is finished. You need 10 more minutes.", sentence: "It is _____ finished.", options: ["ALMOST", "MORE OR LESS", "ABOUT"] },
+            { context: "Someone asks how far the airport is. You think it's 20km.", sentence: "It is _____ 20km.", options: ["ABOUT", "QUITE", "KIND OF"] },
+            { context: "You feel a little bit sick, but not terrible.", sentence: "I feel _____ sick.", options: ["KIND OF", "MORE OR LESS", "APPROXIMATELY"] },
+            { context: "You agree with an idea, but have some doubts.", sentence: "I _____ agree.", options: ["SOMEWHAT", "MORE OR LESS", "QUITE"] }
         ];
 
         const App = () => {
-            const [activeTab, setActiveTab] = useState('fix'); // Default to "The Fix"
+            const [activeTab, setActiveTab] = useState('fix'); // fix, logic, reorder, translate, situations
 
-            // Drag State
+            // --- STATE: REORDER ---
             const [dragIndex, setDragIndex] = useState(0);
-            const [dragItems, setDragItems] = useState([]);
-            const [dragFeedback, setDragFeedback] = useState("");
+            const [currentWords, setCurrentWords] = useState([]);
+            const [selectedIdx, setSelectedIdx] = useState(null);
+            const [dragFeedback, setDragFeedback] = useState('');
 
-            // Translate State
+            // --- STATE: TRANSLATE (NEW BANK SYSTEM) ---
             const [transIndex, setTransIndex] = useState(0);
-            const [transBuilt, setTransBuilt] = useState([]);
-            const [transPool, setTransPool] = useState([]);
-            const [transFeedback, setTransFeedback] = useState("");
+            const [transPool, setTransPool] = useState([]); // Words in the bank
+            const [transLine, setTransLine] = useState([]); // Words in the sentence
+            const [transFeedback, setTransFeedback] = useState('');
 
-            // Situation State
+            // --- STATE: SITUATIONS ---
             const [sitIndex, setSitIndex] = useState(0);
-            const [sitFeedback, setSitFeedback] = useState("");
+            const [sitFeedback, setSitFeedback] = useState('');
 
-            // --- INITIALIZERS ---
+            // --- INIT REORDER ---
             useEffect(() => {
-                const items = [...DRAG_EXERCISES[dragIndex].sentence].sort(() => Math.random() - 0.5);
-                setDragItems(items);
-                setDragFeedback("");
+                const words = [...DRAG_EXERCISES[dragIndex].target];
+                // Shuffle
+                for (let i = words.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [words[i], words[j]] = [words[j], words[i]];
+                }
+                setCurrentWords(words);
+                setDragFeedback('');
+                setSelectedIdx(null);
             }, [dragIndex]);
 
+            // --- INIT TRANSLATE ---
             useEffect(() => {
-                const correctWords = TRANSLATION_EXERCISES[transIndex].en;
-                const distractors = ["so-so", "more", "less", "very"];
-                const pool = [...correctWords, ...distractors].sort(() => Math.random() - 0.5);
-                setTransPool(pool);
-                setTransBuilt([]);
-                setTransFeedback("");
+                const words = TRANSLATION_EXERCISES[transIndex].en.split(" ");
+                // Shuffle
+                for (let i = words.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [words[i], words[j]] = [words[j], words[i]];
+                }
+                setTransPool(words);
+                setTransLine([]);
+                setTransFeedback('');
             }, [transIndex]);
 
-            // --- HANDLERS ---
-            const handleWordClick = (word, isPool, type) => {
-                if (type === 'translate') {
-                    if (isPool) {
-                        setTransBuilt([...transBuilt, word]);
-                        setTransPool(transPool.filter((w, i) => i !== transPool.indexOf(word)));
+            // --- HANDLERS: REORDER (SWAP LOGIC) ---
+            const handleDragStart = (e, index) => {
+                e.dataTransfer.setData('text/plain', index);
+                e.dataTransfer.effectAllowed = "move";
+            };
+
+            const handleDrop = (e, dropIndex) => {
+                e.preventDefault();
+                const dragIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                if (dragIdx === dropIndex) return;
+
+                const newWords = [...currentWords];
+                [newWords[dragIdx], newWords[dropIndex]] = [newWords[dropIndex], newWords[dragIdx]];
+                setCurrentWords(newWords);
+                checkReorder(newWords);
+            };
+
+            const handleClickSwap = (index) => {
+                if (selectedIdx === null) {
+                    setSelectedIdx(index);
+                } else {
+                    const newWords = [...currentWords];
+                    [newWords[selectedIdx], newWords[index]] = [newWords[index], newWords[selectedIdx]];
+                    setCurrentWords(newWords);
+                    setSelectedIdx(null);
+                    checkReorder(newWords);
+                }
+            };
+
+            const checkReorder = (words) => {
+                if (JSON.stringify(words) === JSON.stringify(DRAG_EXERCISES[dragIndex].target)) {
+                    setDragFeedback('PERFECT!');
+                }
+            };
+
+            // --- HANDLERS: TRANSLATE (BANK TO LINE LOGIC) ---
+
+            // 1. Drag Start (Generic for both Pool and Line)
+            const handleTransDragStart = (e, word, origin, index) => {
+                // Data: { word, origin ('pool'|'line'), index }
+                const data = JSON.stringify({ word, origin, index });
+                e.dataTransfer.setData('application/json', data);
+                e.dataTransfer.effectAllowed = "move";
+            };
+
+            // 2. Drop on LINE (Target)
+            const handleDropOnLine = (e) => {
+                e.preventDefault();
+                const dataRaw = e.dataTransfer.getData('application/json');
+                if (!dataRaw) return;
+                const { word, origin, index } = JSON.parse(dataRaw);
+
+                if (origin === 'pool') {
+                    // Move from Pool to Line
+                    const newPool = transPool.filter((_, i) => i !== index);
+                    const newLine = [...transLine, word];
+                    setTransPool(newPool);
+                    setTransLine(newLine);
+                    checkTranslate(newLine);
+                }
+                // If origin is line, we could reorder, but let's keep it simple: just append if dropped on container
+            };
+
+            // 3. Drop on POOL (Source - Remove from line)
+            const handleDropOnPool = (e) => {
+                e.preventDefault();
+                const dataRaw = e.dataTransfer.getData('application/json');
+                if (!dataRaw) return;
+                const { word, origin, index } = JSON.parse(dataRaw);
+
+                if (origin === 'line') {
+                    // Move from Line back to Pool
+                    const newLine = transLine.filter((_, i) => i !== index);
+                    const newPool = [...transPool, word];
+                    setTransLine(newLine);
+                    setTransPool(newPool);
+                }
+            };
+
+            // 4. Click Fallback (Move between arrays)
+            const handleTransClick = (word, origin, index) => {
+                if (origin === 'pool') {
+                    const newPool = transPool.filter((_, i) => i !== index);
+                    const newLine = [...transLine, word];
+                    setTransPool(newPool);
+                    setTransLine(newLine);
+                    checkTranslate(newLine);
+                } else {
+                    const newLine = transLine.filter((_, i) => i !== index);
+                    const newPool = [...transPool, word];
+                    setTransLine(newLine);
+                    setTransPool(newPool);
+                }
+            };
+
+            const checkTranslate = (line) => {
+                const target = TRANSLATION_EXERCISES[transIndex].en.split(" ");
+                if (line.length === target.length) {
+                    if (line.join(" ") === TRANSLATION_EXERCISES[transIndex].en) {
+                        setTransFeedback('PERFECT!');
                     } else {
-                        setTransPool([...transPool, word]);
-                        setTransBuilt(transBuilt.filter((w, i) => i !== transBuilt.indexOf(word)));
+                        // Optional: Feedback for wrong order
                     }
                 }
             };
 
-            useEffect(() => {
-                if (transBuilt.length > 0 && transBuilt.length === TRANSLATION_EXERCISES[transIndex].en.length) {
-                    const attempt = transBuilt.join(" ");
-                    const correct = TRANSLATION_EXERCISES[transIndex].en.join(" ");
-                    if (attempt === correct) {
-                        setTransFeedback("PERFECT!");
-                        setTimeout(() => {
-                            if (transIndex < TRANSLATION_EXERCISES.length - 1) {
-                                setTransIndex(prev => prev + 1);
-                            } else {
-                                setTransFeedback("ALL DONE! 🎉");
-                            }
-                        }, 1500);
-                    } else {
-                        setTransFeedback("Try again...");
-                    }
-                }
-            }, [transBuilt]);
+            // --- HANDLERS: SITUATIONS ---
+            const handleSituationChoice = (opt) => {
+                const correct = SITUATION_EXERCISES[sitIndex].sentence.replace("_____", opt) === SITUATION_EXERCISES[sitIndex].sentence.replace("_____", SITUATION_EXERCISES[sitIndex].options[0]) 
+                    ? true // Simplified check logic based on option 0 being correct in data? No, need logic.
+                    : false; 
 
-            const handleSituationChoice = (choice) => {
-                if (choice === SITUATION_EXERCISES[sitIndex].correct) {
-                    setSitFeedback("CORRECT! ✅");
+                // Hardcoded correct logic based on context keywords
+                let isCorrect = false;
+                const s = SITUATION_EXERCISES[sitIndex];
+                if (s.context.includes("restaurant") && opt === "QUITE") isCorrect = true;
+                if (s.context.includes("10 more minutes") && opt === "ALMOST") isCorrect = true;
+                if (s.context.includes("airport") && opt === "ABOUT") isCorrect = true;
+                if (s.context.includes("sick") && opt === "KIND OF") isCorrect = true;
+                if (s.context.includes("agree") && opt === "SOMEWHAT") isCorrect = true;
+
+                if (isCorrect) {
+                    setSitFeedback('CORRECT! ' + opt + ' is the native choice.');
                     setTimeout(() => {
-                        setSitFeedback("");
-                        if (sitIndex < SITUATION_EXERCISES.length - 1) {
+                        if(sitIndex < SITUATION_EXERCISES.length - 1) {
                             setSitIndex(prev => prev + 1);
+                            setSitFeedback('');
+                        } else {
+                            setSitFeedback('ALL DONE! GREAT JOB!');
                         }
-                    }, 1500);
+                    }, 2000);
                 } else {
-                    setSitFeedback("Not quite... ❌");
+                    setSitFeedback('TRY AGAIN. That sounds unnatural.');
                 }
             };
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white font-sans pb-20">
-
+                <div className="max-w-4xl mx-auto p-4 pb-20 font-sans">
                     {/* HEADER */}
-                    <header className="p-6 text-center border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
-                        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 font-display">
-                            MAIS OU MENOS <span className="text-white">MASTERCLASS</span>
+                    <header className="text-center py-8 border-b border-gray-800 mb-8">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-2 bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-transparent bg-clip-text">
+                            MAIS OU MENOS
                         </h1>
-                        <p className="text-gray-400 text-sm mt-2">Stop saying "So-so". Start sounding native.</p>
+                        <p className="text-gray-400 text-lg">Stop saying "So-so". Start sounding native.</p>
                     </header>
 
                     {/* NAVIGATION */}
-                    <nav className="flex justify-center gap-2 p-4 flex-wrap">
-                        {['fix', 'logic', 'reorder', 'translate', 'situations'].map(tab => (
+                    <nav className="flex flex-wrap justify-center gap-2 mb-12">
+                        {[
+                            { id: 'fix', label: '🛠️ The Fix (20)' },
+                            { id: 'logic', label: '🧠 Logic' },
+                            { id: 'reorder', label: '🧱 Reorder' },
+                            { id: 'translate', label: '🔄 Translate' },
+                            { id: 'situations', label: '🎬 Situations' }
+                        ].map(tab => (
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
-                                    activeTab === tab 
-                                    ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] scale-105' 
-                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-6 py-3 rounded-full font-bold transition-all transform hover:scale-105 ${
+                                    activeTab === tab.id 
+                                    ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+                                    : 'bg-gray-900 text-gray-400 hover:bg-gray-800'
                                 }`}
                             >
-                                {tab === 'fix' && '🛠️ The Fix (20)'}
-                                {tab === 'logic' && '🧠 Logic'}
-                                {tab === 'reorder' && '🧱 Reorder'}
-                                {tab === 'translate' && '🔄 Translate'}
-                                {tab === 'situations' && '🎬 Situations'}
+                                {tab.label}
                             </button>
                         ))}
                     </nav>
 
-                    {/* MAIN CONTENT AREA */}
-                    <main className="p-4 md:p-8 max-w-4xl mx-auto">
+                    {/* CONTENT AREA */}
+                    <main className="min-h-[400px]">
 
-                        {/* --- SECTION 1: THE FIX (WALKTHROUGH) --- */}
+                        {/* --- TAB 1: THE FIX (20 SCENARIOS) --- */}
                         {activeTab === 'fix' && (
-                            <div className="space-y-8 animate-fadeIn">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-bold text-white">20 Walkthrough Scenarios</h2>
-                                    <p className="text-gray-400">See exactly what you <span className="text-red-400">CAN'T</span> use and what is <span className="text-lime-400">PREFERRED</span>.</p>
-                                </div>
+                            <div className="animate-fadeIn grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {SCENARIOS.map((item) => (
+                                    <div key={item.id} className="bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-cyan-500/50 transition-all group">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="bg-gray-800 text-gray-400 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Scenario {item.id}</span>
+                                            <span className="text-cyan-400 text-xs font-bold">{item.context}</span>
+                                        </div>
 
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {SCENARIOS.map((scenario) => (
-                                        <div key={scenario.id} className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl hover:border-cyan-500/30 transition-all">
-                                            {/* Context Header */}
-                                            <div className="bg-gray-800 p-4 border-b border-gray-700 flex items-center justify-between">
-                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{scenario.category}</span>
-                                                <div className="bg-cyan-500/20 px-2 py-1 rounded text-cyan-400 font-bold text-xs">
-                                                    #{scenario.id}
-                                                </div>
+                                        <div className="space-y-3 mb-4">
+                                            <div className="flex items-center text-red-400/60 line-through text-sm">
+                                                <span className="mr-2">❌</span> {item.mistake}
                                             </div>
-                                            <div className="p-4 bg-gray-800/50 border-b border-gray-700">
-                                                <h3 className="font-bold text-gray-200 text-sm">{scenario.context}</h3>
+                                            <div className="flex items-center text-lime-400 font-bold text-lg">
+                                                <span className="mr-2">✅</span> {item.correction}
                                             </div>
+                                        </div>
 
-                                            <div className="grid grid-cols-2 h-full">
-                                                {/* The Mistake */}
-                                                <div className="p-4 bg-red-900/10 border-r border-gray-800 flex flex-col justify-center relative">
-                                                    <div className="text-red-500 font-black text-[10px] tracking-widest uppercase mb-2">
-                                                        ❌ Don't Say
-                                                    </div>
-                                                    <p className="text-sm text-red-300 font-medium line-through decoration-red-500/50">
-                                                        "{scenario.mistake}"
-                                                    </p>
-                                                </div>
+                                        <div className="bg-black/30 p-3 rounded-lg border-l-2 border-cyan-500 mb-2">
+                                            <p className="text-gray-300 text-sm italic">{item.explanation}</p>
+                                        </div>
+                                        <div className="text-fuchsia-400 text-xs font-bold mt-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            {item.association}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                                                {/* The Fix */}
-                                                <div className="p-4 bg-lime-900/10 flex flex-col justify-center relative">
-                                                    <div className="text-lime-500 font-black text-[10px] tracking-widest uppercase mb-2">
-                                                        ✅ Preferred
-                                                    </div>
-                                                    <p className="text-sm text-lime-300 font-bold">
-                                                        "{scenario.correction}"
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* The Why & Association */}
-                                            <div className="p-4 bg-gray-800/80 border-t border-gray-700">
-                                                <p className="text-xs text-gray-400 mb-2">
-                                                    <span className="text-cyan-400 font-bold">Why? </span> 
-                                                    {scenario.explanation}
-                                                </p>
-                                                <div className="bg-black/30 p-2 rounded border border-gray-700/50">
-                                                    <p className="text-xs text-yellow-400 font-mono">
-                                                        {scenario.association}
-                                                    </p>
-                                                </div>
-                                            </div>
+                        {/* --- TAB 2: LOGIC --- */}
+                        {activeTab === 'logic' && (
+                            <div className="animate-fadeIn max-w-2xl mx-auto">
+                                <h2 className="text-3xl font-bold text-center mb-8">The Logic Behind It</h2>
+                                <div className="space-y-4">
+                                    {LOGIC_DATA.map((item, idx) => (
+                                        <div key={idx} className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-gray-600 transition-all">
+                                            <h3 className={`text-xl font-bold mb-2 ${item.color}`}>{item.title}</h3>
+                                            <p className="text-gray-300 leading-relaxed">{item.content}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* --- SECTION 2: LOGIC --- */}
-                        {activeTab === 'logic' && (
-                            <div className="grid gap-6 animate-fadeIn">
-                                {EXPLANATIONS.map((item, idx) => (
-                                    <div key={idx} className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl hover:border-cyan-500/30 transition-colors">
-                                        <h3 className={`text-xl font-bold mb-2 ${item.color}`}>{item.title}</h3>
-                                        <p className="text-gray-300 leading-relaxed">{item.content}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* --- SECTION 3: REORDER --- */}
+                        {/* --- TAB 3: REORDER (SWAP) --- */}
                         {activeTab === 'reorder' && (
-                            <div className="animate-fadeIn max-w-2xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <span className="text-cyan-500 font-bold tracking-widest text-xs uppercase">Exercise {dragIndex + 1}/5</span>
-                                    <h2 className="text-2xl font-bold mt-2">Unscramble the Sentence</h2>
-                                    <p className="text-gray-400 mt-2 italic">"{DRAG_EXERCISES[dragIndex].hint}"</p>
+                            <div className="animate-fadeIn max-w-2xl mx-auto text-center">
+                                <span className="text-cyan-500 font-bold text-xs uppercase bg-cyan-900/20 px-3 py-1 rounded-full">Level {dragIndex + 1}/5</span>
+                                <h2 className="text-2xl font-bold mt-4 mb-2">Unscramble</h2>
+                                <p className="text-gray-400 italic mb-8">"{DRAG_EXERCISES[dragIndex].hint}"</p>
+
+                                <div className="flex flex-wrap justify-center gap-3 mb-8">
+                                    {currentWords.map((word, index) => (
+                                        <div
+                                            key={index}
+                                            draggable="true"
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => handleDrop(e, index)}
+                                            onClick={() => handleClickSwap(index)}
+                                            className={`
+                                                px-5 py-3 rounded-lg font-bold text-lg cursor-pointer transition-all select-none
+                                                ${selectedIdx === index 
+                                                    ? 'bg-fuchsia-600 text-white scale-110 ring-2 ring-fuchsia-300' 
+                                                    : 'bg-gray-800 text-cyan-400 border border-cyan-500/30 hover:bg-gray-700'}
+                                            `}
+                                        >
+                                            {word}
+                                        </div>
+                                    ))}
                                 </div>
 
-                                <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 text-center">
-                                    <p className="text-gray-400 mb-4">Put these in order:</p>
-                                    <div className="flex flex-wrap justify-center gap-3">
-                                        {dragItems.map((word, idx) => (
-                                            <div key={idx} className="bg-cyan-600 text-white px-4 py-3 rounded-lg font-bold shadow-lg animate-pop">
-                                                {word}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="mt-8 pt-4 border-t border-gray-700">
+                                {dragFeedback && (
+                                    <div className="animate-pop">
+                                        <div className="text-2xl font-bold text-lime-400 mb-4">{dragFeedback}</div>
                                         <button 
                                             onClick={() => {
                                                 if(dragIndex < DRAG_EXERCISES.length -1) setDragIndex(prev => prev + 1);
                                                 else setDragIndex(0);
                                             }}
-                                            className="text-cyan-400 hover:text-white text-sm font-bold"
+                                            className="bg-lime-500 text-black font-bold py-2 px-6 rounded-full hover:bg-lime-400"
                                         >
-                                            Next Exercise &rarr;
+                                            Next Level &rarr;
                                         </button>
                                     </div>
-                                </div>
+                                )}
+                                {!dragFeedback && <p className="text-xs text-gray-500">Drag blocks or click two blocks to swap.</p>}
                             </div>
                         )}
 
-                        {/* --- SECTION 4: TRANSLATE --- */}
+                        {/* --- TAB 4: TRANSLATE (FIXED: BANK TO LINE) --- */}
                         {activeTab === 'translate' && (
-                            <div className="animate-fadeIn max-w-2xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <span className="text-fuchsia-500 font-bold tracking-widest text-xs uppercase">Exercise {transIndex + 1}/5</span>
-                                    <h2 className="text-2xl font-bold mt-2">Translate to English</h2>
-                                    <div className="bg-gray-800 inline-block px-6 py-3 rounded-full mt-4 border border-gray-700">
-                                        <p className="text-xl text-white">"{TRANSLATION_EXERCISES[transIndex].pt}"</p>
-                                    </div>
+                            <div className="animate-fadeIn max-w-2xl mx-auto text-center">
+                                <span className="text-fuchsia-500 font-bold text-xs uppercase bg-fuchsia-900/20 px-3 py-1 rounded-full">Exercise {transIndex + 1}/5</span>
+                                <h2 className="text-2xl font-bold mt-4 mb-2">Translate to English</h2>
+                                <div className="bg-gray-800 inline-block px-6 py-3 rounded-xl border border-gray-700 mb-8">
+                                    <p className="text-lg text-white">"{TRANSLATION_EXERCISES[transIndex].pt}"</p>
                                 </div>
 
-                                {/* Built Sentence Area */}
-                                <div className="min-h-[60px] border-b-2 border-gray-700 mb-8 flex flex-wrap gap-2 justify-center pb-4">
-                                    {transBuilt.length === 0 && <span className="text-gray-600 italic">Click words below to build...</span>}
-                                    {transBuilt.map((word, idx) => (
-                                        <button 
+                                {/* THE LINE (Target) */}
+                                <div 
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={handleDropOnLine}
+                                    className={`min-h-[100px] border-2 border-dashed border-gray-700 rounded-xl mb-8 flex flex-wrap gap-2 justify-center items-center p-4 transition-all ${transLine.length === 0 ? 'bg-gray-900/30' : 'bg-gray-900'}`}
+                                >
+                                    {transLine.length === 0 && <span className="text-gray-600 italic text-sm pointer-events-none">Drag words here or click them below...</span>}
+                                    {transLine.map((word, idx) => (
+                                        <div 
                                             key={idx}
-                                            onClick={() => handleWordClick(word, false, 'translate')}
-                                            className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1 rounded shadow-lg font-bold animate-pop"
+                                            draggable="true"
+                                            onDragStart={(e) => handleTransDragStart(e, word, 'line', idx)}
+                                            onClick={() => handleTransClick(word, 'line', idx)}
+                                            className="bg-fuchsia-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg animate-slideUp cursor-grab active:cursor-grabbing"
                                         >
                                             {word}
-                                        </button>
+                                        </div>
                                     ))}
                                 </div>
 
-                                {/* Word Bank */}
-                                <div className="flex flex-wrap gap-3 justify-center">
+                                {/* THE BANK (Source) */}
+                                <div 
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={handleDropOnPool}
+                                    className="flex flex-wrap gap-3 justify-center mb-8 min-h-[60px]"
+                                >
                                     {transPool.map((word, idx) => (
-                                        <button 
+                                        <div 
                                             key={idx}
-                                            onClick={() => handleWordClick(word, true, 'translate')}
-                                            className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold border border-gray-600"
+                                            draggable="true"
+                                            onDragStart={(e) => handleTransDragStart(e, word, 'pool', idx)}
+                                            onClick={() => handleTransClick(word, 'pool', idx)}
+                                            className="bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-gray-700 px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 cursor-grab active:cursor-grabbing"
                                         >
                                             {word}
-                                        </button>
+                                        </div>
                                     ))}
                                 </div>
 
                                 {transFeedback && (
-                                    <div className={`mt-8 text-center text-2xl font-bold animate-pop ${transFeedback === 'PERFECT!' ? 'text-lime-400' : 'text-red-400'}`}>
-                                        {transFeedback}
+                                    <div className="animate-pop">
+                                        <div className="text-2xl font-bold text-lime-400 mb-4">{transFeedback}</div>
+                                        <button 
+                                            onClick={() => {
+                                                if(transIndex < TRANSLATION_EXERCISES.length -1) setTransIndex(prev => prev + 1);
+                                                else setTransIndex(0);
+                                            }}
+                                            className="bg-lime-500 text-black font-bold py-2 px-6 rounded-full hover:bg-lime-400"
+                                        >
+                                            Next Exercise &rarr;
+                                        </button>
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {/* --- SECTION 5: SITUATIONS --- */}
+                        {/* --- TAB 5: SITUATIONS --- */}
                         {activeTab === 'situations' && (
                             <div className="animate-fadeIn max-w-2xl mx-auto">
                                 <div className="text-center mb-8">
-                                    <span className="text-lime-500 font-bold tracking-widest text-xs uppercase">Scenario {sitIndex + 1}/5</span>
-                                    <h2 className="text-2xl font-bold mt-2">Real Life Context</h2>
+                                    <span className="text-lime-500 font-bold text-xs uppercase bg-lime-900/20 px-3 py-1 rounded-full">Scenario {sitIndex + 1}/5</span>
                                 </div>
 
                                 <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
